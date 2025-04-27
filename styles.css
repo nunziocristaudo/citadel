@@ -1,7 +1,7 @@
 :root {
   --bg-color: white;
   --text-color: black;
-  --circle-color: #FFD700; /* yellow for light mode */
+  --circle-color: #FFD700; /* yellow circle for light mode */
 }
 
 body {
@@ -14,7 +14,6 @@ body {
   overflow: auto;
 }
 
-/* Hide scrollbars until scrolling */
 body::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -56,7 +55,6 @@ p {
   color: grey;
 }
 
-/* Theme toggle button */
 #theme-toggle {
   position: absolute;
   top: 20px;
@@ -75,14 +73,13 @@ main#gallery {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 2px;
   padding: 2px;
-  min-width: 5000px; /* Force large starting width */
-  min-height: 5000px; /* Force large starting height */
 }
 
 .post {
   width: 100%;
-  aspect-ratio: 1/1;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
+  position: relative;
 }
 
 .post img {
@@ -90,6 +87,12 @@ main#gallery {
   height: 100%;
   object-fit: cover;
   cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+/* Hover Zoom Effect */
+.post img:hover {
+  transform: scale(1.08);
 }
 
 /* Fade-in Animation */
@@ -115,5 +118,5 @@ footer {
 .dark {
   --bg-color: #121212;
   --text-color: #eeeeee;
-  --circle-color: #000000; /* black circle for dark mode */
+  --circle-color: #000000;
 }
