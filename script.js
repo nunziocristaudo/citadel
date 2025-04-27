@@ -1,32 +1,35 @@
 const gallery = document.getElementById('gallery');
 const themeToggle = document.getElementById('theme-toggle');
 let images = [];
-let filledTiles = 0;
+let loadedImages = 0;
+let batchSize = 30; // How many images to load at a time
 
 // Load images from GitHub
 fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
   .then(response => response.json())
   .then(files => {
     images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif)$/i));
-    populateInitialGrid();
-    setupScrollExpansion();
+    loadInitialImages();
+    setupScrollLoading();
   });
 
-// Populate a starting number of tiles
-function populateInitialGrid() {
-  fillGrid(300); // Start with 300 tiles
+// Load initial batch based on screen size
+function loadInitialImages() {
+  const screenImages = Math.ceil(window.innerWidth / 150) * Math.ceil(window.innerHeight / 150);
+  fillGrid(screenImages + batchSize); // Buffer
 }
 
-// Fill a number of grid tiles
+// Load a batch of new images
 function fillGrid(count) {
-  for (let i = 0; i < count; i++) {
-    const file = images[(filledTiles + i) % images.length];
+  for (let i = 0; i < count && loadedImages < images.length; i++) {
+    const file = images[loadedImages];
     const postDiv = document.createElement('div');
     postDiv.className = 'post fade-in';
 
     const img = document.createElement('img');
     img.src = file.download_url;
     img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+    img.loading = "lazy";
 
     img.addEventListener('click', () => {
       window.open(file.download_url, '_blank');
@@ -34,29 +37,28 @@ function fillGrid(count) {
 
     postDiv.appendChild(img);
     gallery.appendChild(postDiv);
+
+    loadedImages++;
   }
-  filledTiles += count;
   activateFadeIn();
 }
 
-// Expand the grid if user nears an edge
-function setupScrollExpansion() {
+// Expand on scroll
+function setupScrollLoading() {
   window.addEventListener('scroll', () => {
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-    const totalHeight = document.body.scrollHeight;
-    const totalWidth = document.body.scrollWidth;
+    const scrollRight = window.scrollX + window.innerWidth;
+    const pageWidth = document.body.scrollWidth;
 
-    // If user scrolls near bottom or right edge
-    if (scrollY + viewportHeight > totalHeight - 500 || scrollX + viewportWidth > totalWidth - 500) {
-      fillGrid(100); // Add 100 more tiles
+    const scrollBottom = window.scrollY + window.innerHeight;
+    const pageHeight = document.body.scrollHeight;
+
+    if ((scrollRight + 300 > pageWidth || scrollBottom + 300 > pageHeight) && loadedImages < images.length) {
+      fillGrid(batchSize);
     }
   });
 }
 
-// Fade-in animation for images
+// Fade-in animation
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -71,12 +73,12 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Theme toggle button
+// Theme toggle
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
 });
 
-// Set system preference on first load
+// Set system preference
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
   document.body.classList.add('dark');
 }
