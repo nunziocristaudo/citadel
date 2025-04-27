@@ -11,23 +11,7 @@ body {
   font-family: Arial, sans-serif;
   transition: background-color 0.5s, color 0.5s;
   height: 100vh;
-  overflow: auto;
-}
-
-body::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-body::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
-}
-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-body {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
+  overflow: hidden; /* Hide scrollbars for clean panning */
 }
 
 header {
@@ -69,21 +53,18 @@ p {
 }
 
 main#gallery {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(1000, 150px); /* Start massive */
-  grid-template-rows: repeat(1000, 150px);
-  gap: 2px;
-  padding: 2px;
-  min-width: 10000px;
-  min-height: 10000px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  cursor: grab;
 }
 
 .post {
   width: 150px;
   height: 150px;
   overflow: hidden;
-  position: relative;
+  position: absolute;
 }
 
 .post img {
@@ -94,12 +75,10 @@ main#gallery {
   transition: transform 0.3s ease;
 }
 
-/* Hover Zoom Effect */
 .post img:hover {
   transform: scale(1.08);
 }
 
-/* Fade-in Animation */
 .fade-in {
   opacity: 0;
   transform: scale(0.95);
