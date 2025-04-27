@@ -1,7 +1,7 @@
 :root {
   --bg-color: white;
   --text-color: black;
-  --circle-color: #FFD700; /* yellow circle for light mode */
+  --circle-color: #FFD700;
 }
 
 body {
@@ -69,16 +69,19 @@ p {
 }
 
 main#gallery {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(1000, 150px); /* Start massive */
+  grid-template-rows: repeat(1000, 150px);
   gap: 2px;
   padding: 2px;
-  /* Removed min-width/min-height — dynamic now! */
+  min-width: 10000px;
+  min-height: 10000px;
 }
 
 .post {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: 150px;
+  height: 150px;
   overflow: hidden;
   position: relative;
 }
@@ -115,7 +118,6 @@ footer {
   color: grey;
 }
 
-/* Dark mode */
 .dark {
   --bg-color: #121212;
   --text-color: #eeeeee;
