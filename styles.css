@@ -1,6 +1,7 @@
 :root {
   --bg-color: white;
   --text-color: black;
+  --circle-color: #FFD700; /* yellow for light mode */
 }
 
 body {
@@ -13,22 +14,18 @@ body {
   overflow: auto;
 }
 
-/* Hide scrollbars by default, show only when scrolling */
+/* Hide scrollbars until scrolling */
 body::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 body::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
 }
-
 body::-webkit-scrollbar-track {
   background: transparent;
 }
-
-/* Firefox */
 body {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
@@ -37,6 +34,7 @@ body {
 header {
   text-align: center;
   padding: 1rem;
+  position: relative;
 }
 
 .profile-pic {
@@ -58,11 +56,27 @@ p {
   color: grey;
 }
 
+/* Theme toggle button */
+#theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--circle-color);
+  cursor: pointer;
+  transition: background-color 0.5s;
+}
+
 main#gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 2px;
   padding: 2px;
+  min-width: 5000px; /* Force large starting width */
+  min-height: 5000px; /* Force large starting height */
 }
 
 .post {
@@ -97,8 +111,9 @@ footer {
   color: grey;
 }
 
-/* Dark mode ready (future proof) */
+/* Dark mode */
 .dark {
   --bg-color: #121212;
   --text-color: #eeeeee;
+  --circle-color: #000000; /* black circle for dark mode */
 }
