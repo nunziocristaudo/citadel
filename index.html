@@ -5,32 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Citadel</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
 </head>
 <body>
   <header>
     <img src="profile.jpg" alt="Profile Picture" class="profile-pic">
     <h1>@nunziocristaudo</h1>
     <p>Following the Sun</p>
-    <input type="text" id="search-input" placeholder="Search images..." />
-    <button id="theme-toggle" title="Toggle Theme">💡</button>
   </header>
 
   <div id="world">
     <main id="gallery"></main>
   </div>
 
-  <!-- Floating Controls -->
+  <!-- Floating Control Panel -->
   <div id="control-panel">
+    <div id="theme-buttons">
+      <button data-theme="light">☀️</button>
+      <button data-theme="dark">🌑</button>
+      <button data-theme="sepia">📜</button>
+      <button data-theme="night">🌌</button>
+    </div>
+    <div id="zoom-buttons">
+      <button id="zoom-in">➕</button>
+      <button id="zoom-out">➖</button>
+    </div>
     <div id="arrow-buttons">
       <button id="up">⬆️</button>
       <div class="arrow-row">
         <button id="left">⬅️</button>
-        <button id="zoom-in">➕</button>
-        <button id="zoom-out">➖</button>
+        <button id="down">⬇️</button>
         <button id="right">➡️</button>
       </div>
-      <button id="down">⬇️</button>
     </div>
   </div>
 
