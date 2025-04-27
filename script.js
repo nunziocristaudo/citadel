@@ -4,19 +4,20 @@ const themeToggle = document.getElementById('theme-toggle');
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
 const VIEWPORT_BUFFER = 2;
+const CANVAS_SIZE = 10000;
 let loadedTiles = new Set();
 let images = [];
 let imageIndex = 0;
 let lastFetched = 0;
 
-// Smooth panning variables
+// Panning and momentum
 let isDragging = false;
-let startX, startY;
+let dragStartX, dragStartY;
+let scrollStartX, scrollStartY;
 let velocityX = 0, velocityY = 0;
-let lastMoveX = 0, lastMoveY = 0;
-let lastMoveTime = 0;
+let momentumInterval;
 
-// Fetch fresh image list
+// Fetch images
 async function fetchImages() {
   const now = Date.now();
   if (images.length === 0 || now - lastFetched > 5 * 60 * 1000) {
@@ -27,7 +28,7 @@ async function fetchImages() {
   }
 }
 
-// Place a tile at (gridX, gridY)
+// Place a tile at (x,y)
 async function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
@@ -40,8 +41,8 @@ async function placeTile(x, y) {
 
   const postDiv = document.createElement('div');
   postDiv.className = 'post fade-in';
-  postDiv.style.left = `${(window.innerWidth / 2) + (x * (TILE_SIZE + GAP_SIZE))}px`;
-  postDiv.style.top = `${(window.innerHeight / 2) + (y * (TILE_SIZE + GAP_SIZE))}px`;
+  postDiv.style.left = `${(x * (TILE_SIZE + GAP_SIZE))}px`;
+  postDiv.style.top = `${(y * (TILE_SIZE + GAP_SIZE))}px`;
 
   const img = document.createElement('img');
   img.src = file.download_url;
@@ -59,51 +60,95 @@ async function placeTile(x, y) {
   activateFadeIn();
 }
 
-// Monitor dragging for kinetic scrolling
+// Dynamic loading
+function setupDynamicGrid() {
+  window.addEventListener('scroll', async () => {
+    const scrollLeft = window.scrollX;
+    const scrollTop = window.scrollY;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const leftEdge = Math.floor(scrollLeft / (TILE_SIZE + GAP_SIZE));
+    const rightEdge = Math.ceil((scrollLeft + viewportWidth) / (TILE_SIZE + GAP_SIZE));
+    const topEdge = Math.floor(scrollTop / (TILE_SIZE + GAP_SIZE));
+    const bottomEdge = Math.ceil((scrollTop + viewportHeight) / (TILE_SIZE + GAP_SIZE));
+
+    for (let x = leftEdge - VIEWPORT_BUFFER; x <= rightEdge + VIEWPORT_BUFFER; x++) {
+      for (let y = topEdge - VIEWPORT_BUFFER; y <= bottomEdge + VIEWPORT_BUFFER; y++) {
+        placeTile(x, y);
+      }
+    }
+  });
+}
+
+// Smooth kinetic scrolling
 function setupPanning() {
-  gallery.addEventListener('mousedown', (e) => {
+  window.addEventListener('mousedown', (e) => {
     isDragging = true;
-    startX = e.pageX;
-    startY = e.pageY;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    scrollStartX = window.scrollX;
+    scrollStartY = window.scrollY;
     velocityX = velocityY = 0;
+    clearInterval(momentumInterval);
     gallery.style.cursor = 'grabbing';
     e.preventDefault();
   });
 
-  gallery.addEventListener('mouseup', () => {
+  window.addEventListener('mouseup', () => {
     isDragging = false;
     gallery.style.cursor = 'grab';
+    applyMomentum();
   });
 
-  gallery.addEventListener('mouseleave', () => {
-    isDragging = false;
-    gallery.style.cursor = 'grab';
-  });
-
-  gallery.addEventListener('mousemove', (e) => {
+  window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    const dx = e.pageX - startX;
-    const dy = e.pageY - startY;
-    window.scrollBy(-dx, -dy);
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    window.scrollTo(scrollStartX - dx, scrollStartY - dy);
 
-    const now = Date.now();
-    velocityX = (e.pageX - lastMoveX) / (now - lastMoveTime);
-    velocityY = (e.pageY - lastMoveY) / (now - lastMoveTime);
-    lastMoveX = e.pageX;
-    lastMoveY = e.pageY;
-    lastMoveTime = now;
-
-    startX = e.pageX;
-    startY = e.pageY;
+    // Update velocity
+    velocityX = -dx;
+    velocityY = -dy;
   });
 
-  // Apply momentum after drag ends
-  setInterval(() => {
-    if (!isDragging) {
-      window.scrollBy(-velocityX * 20, -velocityY * 20);
-      velocityX *= 0.95;
-      velocityY *= 0.95;
+  // Touch support
+  window.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+    scrollStartX = window.scrollX;
+    scrollStartY = window.scrollY;
+    velocityX = velocityY = 0;
+    clearInterval(momentumInterval);
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    isDragging = false;
+    applyMomentum();
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - dragStartX;
+    const dy = e.touches[0].clientY - dragStartY;
+    window.scrollTo(scrollStartX - dx, scrollStartY - dy);
+
+    velocityX = -dx;
+    velocityY = -dy;
+  }, { passive: true });
+}
+
+// Apply momentum scrolling
+function applyMomentum() {
+  momentumInterval = setInterval(() => {
+    if (Math.abs(velocityX) < 0.1 && Math.abs(velocityY) < 0.1) {
+      clearInterval(momentumInterval);
+      return;
     }
+    window.scrollBy(velocityX, velocityY);
+    velocityX *= 0.90;
+    velocityY *= 0.90;
   }, 16);
 }
 
@@ -120,33 +165,12 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Setup dynamic loading on scroll
-function setupDynamicGrid() {
-  window.addEventListener('scroll', async () => {
-    const scrollLeft = window.scrollX;
-    const scrollTop = window.scrollY;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    const leftEdge = (scrollLeft - viewportWidth / 2) / (TILE_SIZE + GAP_SIZE);
-    const rightEdge = (scrollLeft + viewportWidth * 1.5) / (TILE_SIZE + GAP_SIZE);
-    const topEdge = (scrollTop - viewportHeight / 2) / (TILE_SIZE + GAP_SIZE);
-    const bottomEdge = (scrollTop + viewportHeight * 1.5) / (TILE_SIZE + GAP_SIZE);
-
-    for (let x = Math.floor(leftEdge) - VIEWPORT_BUFFER; x <= Math.ceil(rightEdge) + VIEWPORT_BUFFER; x++) {
-      for (let y = Math.floor(topEdge) - VIEWPORT_BUFFER; y <= Math.ceil(bottomEdge) + VIEWPORT_BUFFER; y++) {
-        placeTile(x, y);
-      }
-    }
-  });
-}
-
 // Theme toggle
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
 });
 
-// Set system theme
+// System theme
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
   document.body.classList.add('dark');
 }
@@ -155,11 +179,7 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
-  for (let x = -15; x <= 15; x++) {
-    for (let y = -15; y <= 15; y++) {
-      placeTile(x, y);
-    }
-  }
+  window.scrollTo(CANVAS_SIZE / 2, CANVAS_SIZE / 2); // Start centered
   setupDynamicGrid();
   setupPanning();
 })();
