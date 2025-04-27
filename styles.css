@@ -11,13 +11,14 @@ body {
   font-family: Arial, sans-serif;
   transition: background-color 0.5s, color 0.5s;
   height: 100vh;
-  overflow: hidden; /* Hide scrollbars for clean panning */
+  overflow: hidden; /* Hide native scrollbars for clean panning */
 }
 
 header {
   text-align: center;
   padding: 1rem;
   position: relative;
+  z-index: 10; /* Header always on top */
 }
 
 .profile-pic {
@@ -54,9 +55,10 @@ p {
 
 main#gallery {
   position: absolute;
+  width: 10000px; /* Big canvas */
+  height: 10000px;
   top: 0;
   left: 0;
-  display: block;
   cursor: grab;
 }
 
@@ -95,6 +97,7 @@ footer {
   padding: 1rem;
   font-size: 0.8rem;
   color: grey;
+  z-index: 10;
 }
 
 .dark {
