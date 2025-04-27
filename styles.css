@@ -10,7 +10,7 @@ body {
   color: var(--text-color);
   font-family: Arial, sans-serif;
   height: 100vh;
-  overflow: scroll; /* Native scroll active now */
+  overflow: scroll;
 }
 
 header {
@@ -50,6 +50,33 @@ p {
   background-color: var(--circle-color);
   cursor: pointer;
   transition: background-color 0.5s;
+}
+
+#controls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 999;
+}
+
+#controls button {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#themes {
+  display: flex;
+  gap: 4px;
 }
 
 #world {
@@ -103,8 +130,23 @@ footer {
   z-index: 10;
 }
 
+/* Themes */
+.light {
+  --bg-color: #ffffff;
+  --text-color: #111111;
+}
+
 .dark {
   --bg-color: #121212;
   --text-color: #eeeeee;
-  --circle-color: #000000;
+}
+
+.sepia {
+  --bg-color: #f4ecd8;
+  --text-color: #5b4636;
+}
+
+.night {
+  --bg-color: #00001a;
+  --text-color: #cceeff;
 }
