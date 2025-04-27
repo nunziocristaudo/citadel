@@ -1,46 +1,56 @@
 const gallery = document.getElementById('gallery');
-const toggleButton = document.getElementById('theme-toggle');
 
-// Load posts dynamically from GitHub images folder
+let images = [];
+
+// Load images from GitHub
 fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
   .then(response => response.json())
   .then(files => {
-    files.forEach(file => {
-      if (file.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
-        const postDiv = document.createElement('div');
-        postDiv.className = 'post fade-in'; // Add fade-in class
-
-        const img = document.createElement('img');
-        img.src = file.download_url;
-        img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
-
-        postDiv.appendChild(img);
-        gallery.appendChild(postDiv);
-      }
-    });
-
-    // After loading images, activate fade-in observer
-    setupFadeInObserver();
+    images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif)$/i));
+    populateGallery(images); // initial load
+    setupObserver();
   });
 
-// Toggle theme (dark/light mode)
-toggleButton.addEventListener('click', () => {
-  document.body.classList.toggle('dark');
-  if (document.body.classList.contains('dark')) {
-    toggleButton.textContent = '☀️';
-  } else {
-    toggleButton.textContent = '⚫';
-  }
-});
+// Populate gallery with images
+function populateGallery(imagesArray) {
+  imagesArray.forEach(file => {
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post fade-in';
 
-// Detect user's system theme on initial load
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.body.classList.add('dark');
-  toggleButton.textContent = '☀️';
+    const img = document.createElement('img');
+    img.src = file.download_url;
+    img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+
+    postDiv.appendChild(img);
+    gallery.appendChild(postDiv);
+  });
+  activateFadeIn();
+}
+
+// Setup intersection observer to detect near bottom or right scroll
+function setupObserver() {
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  sentinel.style.width = '1px';
+  gallery.appendChild(sentinel);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        populateGallery(images); // append another batch
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: "500px", // start loading earlier
+    threshold: 0
+  });
+
+  observer.observe(sentinel);
 }
 
 // Fade-in animation when images scroll into view
-function setupFadeInObserver() {
+function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -51,5 +61,5 @@ function setupFadeInObserver() {
     threshold: 0.1
   });
 
-  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
