@@ -3,13 +3,20 @@ const themeToggle = document.getElementById('theme-toggle');
 
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
-const VIEWPORT_BUFFER = 2; // Load tiles 2 away from visible edge
-const loadedTiles = new Set();
+const VIEWPORT_BUFFER = 2;
+let loadedTiles = new Set();
 let images = [];
 let imageIndex = 0;
 let lastFetched = 0;
 
-// Fetch fresh image list from GitHub every 5 minutes
+// Smooth panning variables
+let isDragging = false;
+let startX, startY;
+let velocityX = 0, velocityY = 0;
+let lastMoveX = 0, lastMoveY = 0;
+let lastMoveTime = 0;
+
+// Fetch fresh image list
 async function fetchImages() {
   const now = Date.now();
   if (images.length === 0 || now - lastFetched > 5 * 60 * 1000) {
@@ -33,9 +40,6 @@ async function placeTile(x, y) {
 
   const postDiv = document.createElement('div');
   postDiv.className = 'post fade-in';
-  postDiv.style.position = 'absolute';
-  postDiv.style.width = `${TILE_SIZE}px`;
-  postDiv.style.height = `${TILE_SIZE}px`;
   postDiv.style.left = `${(window.innerWidth / 2) + (x * (TILE_SIZE + GAP_SIZE))}px`;
   postDiv.style.top = `${(window.innerHeight / 2) + (y * (TILE_SIZE + GAP_SIZE))}px`;
 
@@ -55,7 +59,68 @@ async function placeTile(x, y) {
   activateFadeIn();
 }
 
-// Watch scrolling and expand dynamically
+// Monitor dragging for kinetic scrolling
+function setupPanning() {
+  gallery.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.pageX;
+    startY = e.pageY;
+    velocityX = velocityY = 0;
+    gallery.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  gallery.addEventListener('mouseup', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
+
+  gallery.addEventListener('mouseleave', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
+
+  gallery.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.pageX - startX;
+    const dy = e.pageY - startY;
+    window.scrollBy(-dx, -dy);
+
+    const now = Date.now();
+    velocityX = (e.pageX - lastMoveX) / (now - lastMoveTime);
+    velocityY = (e.pageY - lastMoveY) / (now - lastMoveTime);
+    lastMoveX = e.pageX;
+    lastMoveY = e.pageY;
+    lastMoveTime = now;
+
+    startX = e.pageX;
+    startY = e.pageY;
+  });
+
+  // Apply momentum after drag ends
+  setInterval(() => {
+    if (!isDragging) {
+      window.scrollBy(-velocityX * 20, -velocityY * 20);
+      velocityX *= 0.95;
+      velocityY *= 0.95;
+    }
+  }, 16);
+}
+
+// Fade-in animation
+function activateFadeIn() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('show');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
+}
+
+// Setup dynamic loading on scroll
 function setupDynamicGrid() {
   window.addEventListener('scroll', async () => {
     const scrollLeft = window.scrollX;
@@ -76,30 +141,17 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in animation
-function activateFadeIn() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
-    });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
-}
-
 // Theme toggle
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
 });
 
-// Set system preference on load
+// Set system theme
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
   document.body.classList.add('dark');
 }
 
-// Initial setup
+// INIT
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
@@ -109,4 +161,5 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
     }
   }
   setupDynamicGrid();
+  setupPanning();
 })();
