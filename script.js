@@ -1,75 +1,62 @@
 const gallery = document.getElementById('gallery');
 const themeToggle = document.getElementById('theme-toggle');
+
+const TILE_SIZE = 150;
+const VIEWPORT_BUFFER = 3; // how many tiles from edge to expand
+const GRID_SIZE = 1000; // Starting grid 1000x1000
+const CENTER = GRID_SIZE / 2;
+let loadedCoords = new Set();
 let images = [];
 let loadedImages = 0;
-const batchSize = 30;
+let lastFetched = 0;
 
-// Load images from GitHub
-fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
-  .then(response => response.json())
-  .then(files => {
+// Fetch images from GitHub
+async function fetchImages() {
+  const now = Date.now();
+  if (images.length === 0 || now - lastFetched > 5 * 60 * 1000) { // Refresh every 5 min
+    const response = await fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images');
+    const files = await response.json();
     images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif)$/i));
-    loadInitialImages();
-    setupScrollLoading();
-  });
-
-// Load initial images based on screen size
-function loadInitialImages() {
-  const screenImages = Math.ceil(window.innerWidth / 150) * Math.ceil(window.innerHeight / 150);
-  fillGrid(screenImages + batchSize);
+    lastFetched = now;
+  }
 }
 
-// Fill a batch of new images
-function fillGrid(count) {
-  for (let i = 0; i < count && loadedImages < images.length; i++) {
-    const file = images[loadedImages];
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post fade-in';
+// Place a tile at (x,y)
+async function placeTile(x, y) {
+  const coordKey = `${x},${y}`;
+  if (loadedCoords.has(coordKey)) return;
+  
+  await fetchImages();
 
-    const img = document.createElement('img');
-    img.src = file.download_url;
-    img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
-    img.loading = "lazy";
+  if (images.length === 0) return; // No images, don't place
 
-    img.addEventListener('click', () => {
-      window.open(file.download_url, '_blank');
-    });
+  const index = loadedImages % images.length;
+  const file = images[index];
 
-    postDiv.appendChild(img);
-    gallery.appendChild(postDiv);
+  const postDiv = document.createElement('div');
+  postDiv.className = 'post fade-in';
+  postDiv.style.gridColumnStart = CENTER + x;
+  postDiv.style.gridRowStart = CENTER + y;
 
-    loadedImages++;
-  }
+  const img = document.createElement('img');
+  img.src = file.download_url;
+  img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+  img.loading = "lazy";
+
+  img.addEventListener('click', () => {
+    window.open(file.download_url, '_blank');
+  });
+
+  postDiv.appendChild(img);
+  gallery.appendChild(postDiv);
+
+  loadedCoords.add(coordKey);
+  loadedImages++;
+
   activateFadeIn();
-  expandGalleryWidth();
 }
 
-// Dynamically expand gallery width
-function expandGalleryWidth() {
-  const currentColumns = getComputedStyle(gallery).gridTemplateColumns.split(' ').length;
-  const estimatedColumns = Math.ceil((window.scrollX + window.innerWidth) / 150) + 5;
-
-  if (estimatedColumns > currentColumns) {
-    gallery.style.gridTemplateColumns = `repeat(${estimatedColumns}, minmax(150px, 1fr))`;
-  }
-}
-
-// Setup smart scroll loading
-function setupScrollLoading() {
-  window.addEventListener('scroll', () => {
-    const scrollRight = window.scrollX + window.innerWidth;
-    const pageWidth = document.body.scrollWidth;
-
-    const scrollBottom = window.scrollY + window.innerHeight;
-    const pageHeight = document.body.scrollHeight;
-
-    if ((scrollRight + 300 > pageWidth || scrollBottom + 300 > pageHeight) && loadedImages < images.length) {
-      fillGrid(batchSize);
-    }
-  });
-}
-
-// Fade-in animation
+// Activate fade-in
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -77,19 +64,49 @@ function activateFadeIn() {
         entry.target.classList.add('show');
       }
     });
-  }, {
-    threshold: 0.1
-  });
+  }, { threshold: 0.1 });
 
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Theme toggle button
+// Monitor scroll position
+function setupScrollLoading() {
+  window.addEventListener('scroll', () => {
+    const scrollLeft = window.scrollX;
+    const scrollTop = window.scrollY;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const leftTile = Math.floor(scrollLeft / (TILE_SIZE + 2)) - CENTER;
+    const topTile = Math.floor(scrollTop / (TILE_SIZE + 2)) - CENTER;
+    const rightTile = Math.floor((scrollLeft + viewportWidth) / (TILE_SIZE + 2)) - CENTER;
+    const bottomTile = Math.floor((scrollTop + viewportHeight) / (TILE_SIZE + 2)) - CENTER;
+
+    for (let x = leftTile - VIEWPORT_BUFFER; x <= rightTile + VIEWPORT_BUFFER; x++) {
+      for (let y = topTile - VIEWPORT_BUFFER; y <= bottomTile + VIEWPORT_BUFFER; y++) {
+        placeTile(x, y);
+      }
+    }
+  });
+}
+
+// Light/dark toggle
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
 });
 
-// Set system preference on load
+// Set system theme on load
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
   document.body.classList.add('dark');
 }
+
+// INIT
+(async function init() {
+  await fetchImages();
+  for (let x = -15; x <= 15; x++) {
+    for (let y = -15; y <= 15; y++) {
+      placeTile(x, y);
+    }
+  }
+  setupScrollLoading();
+})();
