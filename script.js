@@ -1,16 +1,20 @@
 const gallery = document.getElementById('gallery');
 const themeToggle = document.getElementById('theme-toggle');
+const zoomInBtn = document.getElementById('zoom-in');
+const zoomOutBtn = document.getElementById('zoom-out');
+const themes = document.querySelectorAll('#themes button');
 
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
 const VIEWPORT_BUFFER = 2;
 const WORLD_SIZE = 10000;
+let scaleFactor = 1;
 let loadedTiles = new Set();
 let images = [];
 let imageIndex = 0;
 let lastFetched = 0;
 
-// Dragging and Momentum
+// Dragging + momentum
 let isDragging = false;
 let dragStartX, dragStartY;
 let scrollStartX, scrollStartY;
@@ -28,7 +32,7 @@ async function fetchImages() {
   }
 }
 
-// Place a tile at (x,y)
+// Place a tile
 async function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
@@ -41,8 +45,10 @@ async function placeTile(x, y) {
 
   const postDiv = document.createElement('div');
   postDiv.className = 'post fade-in';
-  postDiv.style.left = `${x * (TILE_SIZE + GAP_SIZE)}px`;
-  postDiv.style.top = `${y * (TILE_SIZE + GAP_SIZE)}px`;
+  postDiv.style.left = `${x * (TILE_SIZE + GAP_SIZE) * scaleFactor}px`;
+  postDiv.style.top = `${y * (TILE_SIZE + GAP_SIZE) * scaleFactor}px`;
+  postDiv.style.width = `${TILE_SIZE * scaleFactor}px`;
+  postDiv.style.height = `${TILE_SIZE * scaleFactor}px`;
 
   const img = document.createElement('img');
   img.src = file.download_url;
@@ -60,7 +66,7 @@ async function placeTile(x, y) {
   activateFadeIn();
 }
 
-// Dynamic load tiles around visible area
+// Setup dynamic loading
 function setupDynamicGrid() {
   window.addEventListener('scroll', async () => {
     const scrollLeft = window.scrollX;
@@ -68,10 +74,10 @@ function setupDynamicGrid() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    const leftEdge = Math.floor(scrollLeft / (TILE_SIZE + GAP_SIZE));
-    const rightEdge = Math.ceil((scrollLeft + viewportWidth) / (TILE_SIZE + GAP_SIZE));
-    const topEdge = Math.floor(scrollTop / (TILE_SIZE + GAP_SIZE));
-    const bottomEdge = Math.ceil((scrollTop + viewportHeight) / (TILE_SIZE + GAP_SIZE));
+    const leftEdge = Math.floor(scrollLeft / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
+    const rightEdge = Math.ceil((scrollLeft + viewportWidth) / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
+    const topEdge = Math.floor(scrollTop / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
+    const bottomEdge = Math.ceil((scrollTop + viewportHeight) / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
 
     for (let x = leftEdge - VIEWPORT_BUFFER; x <= rightEdge + VIEWPORT_BUFFER; x++) {
       for (let y = topEdge - VIEWPORT_BUFFER; y <= bottomEdge + VIEWPORT_BUFFER; y++) {
@@ -81,7 +87,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Dragging + Momentum
+// Setup panning
 function setupPanning() {
   window.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -110,6 +116,7 @@ function setupPanning() {
     velocityY = -dy;
   });
 
+  // Touch support
   window.addEventListener('touchstart', (e) => {
     isDragging = true;
     dragStartX = e.touches[0].clientX;
@@ -161,15 +168,34 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Theme toggle
-themeToggle.addEventListener('click', () => {
-  document.body.classList.toggle('dark');
+// Keyboard arrows to move
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') window.scrollBy({ left: -200, behavior: 'smooth' });
+  if (e.key === 'ArrowRight') window.scrollBy({ left: 200, behavior: 'smooth' });
+  if (e.key === 'ArrowUp') window.scrollBy({ top: -200, behavior: 'smooth' });
+  if (e.key === 'ArrowDown') window.scrollBy({ top: 200, behavior: 'smooth' });
 });
 
-// Theme preference
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.body.classList.add('dark');
-}
+// Zoom controls
+zoomInBtn.addEventListener('click', () => {
+  scaleFactor *= 1.1;
+  gallery.innerHTML = '';
+  loadedTiles.clear();
+  setupDynamicGrid();
+});
+zoomOutBtn.addEventListener('click', () => {
+  scaleFactor /= 1.1;
+  gallery.innerHTML = '';
+  loadedTiles.clear();
+  setupDynamicGrid();
+});
+
+// Theme switcher
+themes.forEach(button => {
+  button.addEventListener('click', () => {
+    document.body.className = button.dataset.theme;
+  });
+});
 
 // INIT
 (async function init() {
