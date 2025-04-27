@@ -1,25 +1,27 @@
 const gallery = document.getElementById('gallery');
 const toggleButton = document.getElementById('theme-toggle');
 
-// Load posts
-fetch('posts.json')
+// Load posts from GitHub
+fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
     .then(response => response.json())
-    .then(posts => {
-        posts.forEach(post => {
-            const postDiv = document.createElement('div');
-            postDiv.className = 'post';
+    .then(files => {
+        files.forEach(file => {
+            if (file.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
 
-            const img = document.createElement('img');
-            img.src = post.image;
-            img.alt = post.caption;
+                const img = document.createElement('img');
+                img.src = file.download_url;
+                img.alt = file.name;
 
-            const caption = document.createElement('div');
-            caption.className = 'caption';
-            caption.textContent = post.caption;
+                const caption = document.createElement('div');
+                caption.className = 'caption';
+                caption.textContent = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
 
-            postDiv.appendChild(img);
-            postDiv.appendChild(caption);
-            gallery.appendChild(postDiv);
+                postDiv.appendChild(img);
+                postDiv.appendChild(caption);
+                gallery.appendChild(postDiv);
+            }
         });
     });
 
