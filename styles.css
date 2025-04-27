@@ -50,14 +50,14 @@ h1, p {
   position: absolute;
 }
 
-.post img {
+.post img, .post video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.post img:hover {
+.post img:hover, .post video:hover {
   transform: scale(1.08);
 }
 
@@ -89,7 +89,7 @@ footer {
   gap: 10px;
 }
 
-#theme-buttons button, #arrow-buttons button {
+#theme-buttons button, #zoom-buttons button, #arrow-buttons button {
   background: rgba(255, 255, 255, 0.4);
   border: none;
   border-radius: 50%;
@@ -99,9 +99,15 @@ footer {
   transition: background 0.3s, transform 0.3s;
 }
 
-#theme-buttons button:hover, #arrow-buttons button:hover {
+#theme-buttons button:hover, #zoom-buttons button:hover, #arrow-buttons button:hover {
   background: rgba(255, 255, 255, 0.8);
   transform: scale(1.1);
+}
+
+#zoom-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 #arrow-buttons {
