@@ -15,8 +15,8 @@ body {
 header {
   text-align: center;
   padding: 1rem;
-  z-index: 10;
   position: relative;
+  z-index: 10;
 }
 
 .profile-pic {
@@ -28,6 +28,28 @@ header {
 
 h1, p {
   margin: 0;
+}
+
+#search-input {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  z-index: 999;
+}
+
+#theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 999;
 }
 
 #world {
@@ -72,24 +94,17 @@ h1, p {
   transform: scale(1);
 }
 
-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.8rem;
-}
-
-/* Floating Controls */
 #control-panel {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  bottom: 20px;
+  right: 20px;
   z-index: 999;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-#theme-buttons button, #zoom-buttons button, #arrow-buttons button {
+#arrow-buttons button {
   background: rgba(255, 255, 255, 0.4);
   border: none;
   border-radius: 50%;
@@ -99,30 +114,16 @@ footer {
   transition: background 0.3s, transform 0.3s;
 }
 
-#theme-buttons button:hover, #zoom-buttons button:hover, #arrow-buttons button:hover {
+#arrow-buttons button:hover {
   background: rgba(255, 255, 255, 0.8);
   transform: scale(1.1);
-}
-
-#zoom-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-#arrow-buttons {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .arrow-row {
   display: flex;
   gap: 10px;
-  margin-top: 5px;
+  margin: 5px 0;
+  justify-content: center;
 }
 
 /* Theme Variants */
@@ -133,12 +134,4 @@ footer {
 .dark {
   --bg-color: #121212;
   --text-color: #eeeeee;
-}
-.sepia {
-  --bg-color: #f4ecd8;
-  --text-color: #5b4636;
-}
-.night {
-  --bg-color: #00001a;
-  --text-color: #cceeff;
 }
