@@ -7,8 +7,8 @@ fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
   .then(response => response.json())
   .then(files => {
     images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif)$/i));
-    populateGallery(images); // initial load
-    setupInfiniteScroll();   // prepare for infinite repeating
+    populateGallery(images);
+    setupInfiniteScroll();
   });
 
 // Populate gallery with a batch of images
@@ -21,7 +21,6 @@ function populateGallery(imagesArray) {
     img.src = file.download_url;
     img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
 
-    // When image is clicked, open it full-size in a new tab
     img.addEventListener('click', () => {
       window.open(file.download_url, '_blank');
     });
@@ -29,34 +28,44 @@ function populateGallery(imagesArray) {
     postDiv.appendChild(img);
     gallery.appendChild(postDiv);
   });
-  activateFadeIn(); // activate fade-in animation
+
+  activateFadeIn();
+  moveSentinel(); // move sentinel down after new images added
 }
 
 // Set up infinite scroll
+let observer;
 function setupInfiniteScroll() {
   const sentinel = document.createElement('div');
+  sentinel.id = 'sentinel';
   sentinel.style.height = '1px';
   sentinel.style.width = '1px';
   gallery.appendChild(sentinel);
 
-  const observer = new IntersectionObserver(entries => {
+  observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        populateGallery(images); // clone another batch when near the bottom
+        populateGallery(images); // clone another batch when near bottom
       }
     });
   }, {
     root: null,
-    rootMargin: "1000px", // trigger earlier
+    rootMargin: "1000px",
     threshold: 0
   });
 
   observer.observe(sentinel);
 }
 
-// Fade-in animation when images come into view
+// Move sentinel to the new bottom after each batch
+function moveSentinel() {
+  const sentinel = document.getElementById('sentinel');
+  gallery.appendChild(sentinel); // move sentinel to end of gallery
+}
+
+// Fade-in animation
 function activateFadeIn() {
-  const observer = new IntersectionObserver((entries) => {
+  const observerFade = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('show');
@@ -66,5 +75,5 @@ function activateFadeIn() {
     threshold: 0.1
   });
 
-  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
+  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observerFade.observe(el));
 }
