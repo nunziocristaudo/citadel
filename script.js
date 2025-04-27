@@ -4,13 +4,13 @@ const themeToggle = document.getElementById('theme-toggle');
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
 const VIEWPORT_BUFFER = 2;
-const CANVAS_SIZE = 10000;
+const WORLD_SIZE = 10000;
 let loadedTiles = new Set();
 let images = [];
 let imageIndex = 0;
 let lastFetched = 0;
 
-// Panning and momentum
+// Dragging and Momentum
 let isDragging = false;
 let dragStartX, dragStartY;
 let scrollStartX, scrollStartY;
@@ -41,8 +41,8 @@ async function placeTile(x, y) {
 
   const postDiv = document.createElement('div');
   postDiv.className = 'post fade-in';
-  postDiv.style.left = `${(x * (TILE_SIZE + GAP_SIZE))}px`;
-  postDiv.style.top = `${(y * (TILE_SIZE + GAP_SIZE))}px`;
+  postDiv.style.left = `${x * (TILE_SIZE + GAP_SIZE)}px`;
+  postDiv.style.top = `${y * (TILE_SIZE + GAP_SIZE)}px`;
 
   const img = document.createElement('img');
   img.src = file.download_url;
@@ -60,7 +60,7 @@ async function placeTile(x, y) {
   activateFadeIn();
 }
 
-// Dynamic loading
+// Dynamic load tiles around visible area
 function setupDynamicGrid() {
   window.addEventListener('scroll', async () => {
     const scrollLeft = window.scrollX;
@@ -81,7 +81,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Smooth kinetic scrolling
+// Dragging + Momentum
 function setupPanning() {
   window.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -106,13 +106,10 @@ function setupPanning() {
     const dx = e.clientX - dragStartX;
     const dy = e.clientY - dragStartY;
     window.scrollTo(scrollStartX - dx, scrollStartY - dy);
-
-    // Update velocity
     velocityX = -dx;
     velocityY = -dy;
   });
 
-  // Touch support
   window.addEventListener('touchstart', (e) => {
     isDragging = true;
     dragStartX = e.touches[0].clientX;
@@ -133,13 +130,12 @@ function setupPanning() {
     const dx = e.touches[0].clientX - dragStartX;
     const dy = e.touches[0].clientY - dragStartY;
     window.scrollTo(scrollStartX - dx, scrollStartY - dy);
-
     velocityX = -dx;
     velocityY = -dy;
   }, { passive: true });
 }
 
-// Apply momentum scrolling
+// Momentum
 function applyMomentum() {
   momentumInterval = setInterval(() => {
     if (Math.abs(velocityX) < 0.1 && Math.abs(velocityY) < 0.1) {
@@ -152,7 +148,7 @@ function applyMomentum() {
   }, 16);
 }
 
-// Fade-in animation
+// Fade-in
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -170,7 +166,7 @@ themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
 });
 
-// System theme
+// Theme preference
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
   document.body.classList.add('dark');
 }
@@ -179,7 +175,7 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
-  window.scrollTo(CANVAS_SIZE / 2, CANVAS_SIZE / 2); // Start centered
+  window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
   setupPanning();
 })();
