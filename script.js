@@ -1,19 +1,37 @@
 const gallery = document.getElementById('gallery');
-
 let images = [];
+let totalColumns = 0;
+let totalRows = 0;
 
 // Load images from GitHub
 fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images')
   .then(response => response.json())
   .then(files => {
     images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif)$/i));
-    populateGallery(images);
-    setupInfiniteScroll();
+    generateInitialGrid();
   });
 
-// Populate gallery with a batch of images
-function populateGallery(imagesArray) {
-  imagesArray.forEach(file => {
+// Calculate how many columns and rows we need based on viewport size
+function calculateGridSize() {
+  const squareSize = 150 + 2; // 150px + 2px gap
+  const columns = Math.ceil(window.innerWidth / squareSize) + 5; // buffer
+  const rows = Math.ceil(window.innerHeight / squareSize) + 5;   // buffer
+  return { columns, rows };
+}
+
+// Create the initial grid
+function generateInitialGrid() {
+  const { columns, rows } = calculateGridSize();
+  totalColumns = columns;
+  totalRows = rows;
+  fillGrid(columns * rows);
+  setupScrollListener();
+}
+
+// Fill grid with a number of squares
+function fillGrid(number) {
+  for (let i = 0; i < number; i++) {
+    const file = images[i % images.length];
     const postDiv = document.createElement('div');
     postDiv.className = 'post fade-in';
 
@@ -27,45 +45,29 @@ function populateGallery(imagesArray) {
 
     postDiv.appendChild(img);
     gallery.appendChild(postDiv);
-  });
-
+  }
   activateFadeIn();
-  moveSentinel(); // move sentinel down after new images added
 }
 
-// Set up infinite scroll
-let observer;
-function setupInfiniteScroll() {
-  const sentinel = document.createElement('div');
-  sentinel.id = 'sentinel';
-  sentinel.style.height = '1px';
-  sentinel.style.width = '1px';
-  gallery.appendChild(sentinel);
+// Listen for scrolling and add more images if needed
+function setupScrollListener() {
+  window.addEventListener('scroll', () => {
+    const scrollBottom = window.innerHeight + window.scrollY;
+    const pageHeight = document.body.offsetHeight;
 
-  observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        populateGallery(images); // clone another batch when near bottom
-      }
-    });
-  }, {
-    root: null,
-    rootMargin: "1000px",
-    threshold: 0
+    const scrollRight = window.innerWidth + window.scrollX;
+    const pageWidth = document.body.offsetWidth;
+
+    // If user nears bottom or right side
+    if (scrollBottom + 500 > pageHeight || scrollRight + 500 > pageWidth) {
+      fillGrid(totalColumns * 2); // Add two more rows/columns worth
+    }
   });
-
-  observer.observe(sentinel);
-}
-
-// Move sentinel to the new bottom after each batch
-function moveSentinel() {
-  const sentinel = document.getElementById('sentinel');
-  gallery.appendChild(sentinel); // move sentinel to end of gallery
 }
 
 // Fade-in animation
 function activateFadeIn() {
-  const observerFade = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('show');
@@ -75,5 +77,5 @@ function activateFadeIn() {
     threshold: 0.1
   });
 
-  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observerFade.observe(el));
+  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
