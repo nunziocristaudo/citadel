@@ -9,40 +9,20 @@ body {
   color: var(--text-color);
   font-family: Arial, sans-serif;
   transition: background-color 0.5s, color 0.5s;
-}
-
-header {
-  text-align: center;
-  padding: 1rem;
-  position: relative;
-}
-
-.profile-pic {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-}
-
-#theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 2rem;
-  background: none;
-  border: none;
-  cursor: pointer;
+  overflow: auto;
+  height: 100vh;
 }
 
 main#gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 2px; /* thin white gap between images */
+  gap: 2px; /* thin white gaps */
   padding: 2px;
 }
 
 .post {
   width: 100%;
-  aspect-ratio: 1 / 1; /* Make sure every photo is a square */
+  aspect-ratio: 1 / 1;
   overflow: hidden;
 }
 
@@ -52,24 +32,7 @@ main#gallery {
   object-fit: cover;
 }
 
-/* Hide captions for clean grid look */
-.caption {
-  display: none;
-}
-
-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.8rem;
-}
-
-/* Dark mode styling */
-.dark {
-  --bg-color: #121212;
-  --text-color: #eeeeee;
-}
-
-/* Fade-in Animation */
+/* Fade-in animation for newly cloned images */
 .fade-in {
   opacity: 0;
   transform: translateY(20px);
@@ -79,4 +42,10 @@ footer {
 .fade-in.show {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Dark mode optional (not active without toggle now) */
+.dark {
+  --bg-color: #121212;
+  --text-color: #eeeeee;
 }
