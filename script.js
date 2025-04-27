@@ -1,5 +1,6 @@
 const gallery = document.getElementById('gallery');
-const themeButtons = document.querySelectorAll('#theme-buttons button');
+const searchInput = document.getElementById('search-input');
+const themeToggle = document.getElementById('theme-toggle');
 const upBtn = document.getElementById('up');
 const downBtn = document.getElementById('down');
 const leftBtn = document.getElementById('left');
@@ -14,10 +15,20 @@ const WORLD_SIZE = 10000;
 let scaleFactor = 1;
 let loadedTiles = new Set();
 let images = [];
+let predictions = new Map(); // filename -> tags array
 let imageIndex = 0;
 let lastFetched = 0;
+let classifier;
 
-// Fetch images and videos
+// Load ml5.js MobileNet
+ml5.imageClassifier('MobileNet')
+  .then(model => {
+    classifier = model;
+    console.log('AI Model loaded!');
+    init();
+  });
+
+// Fetch images
 async function fetchImages() {
   const now = Date.now();
   if (images.length === 0 || now - lastFetched > 5 * 60 * 1000) {
@@ -32,7 +43,7 @@ async function fetchImages() {
 async function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
-  
+
   await fetchImages();
   if (images.length === 0) return;
 
@@ -63,6 +74,11 @@ async function placeTile(x, y) {
     img.loading = "lazy";
     img.addEventListener('click', () => window.open(file.download_url, '_blank'));
     postDiv.appendChild(img);
+
+    img.onload = async () => {
+      const results = await classifier.classify(img);
+      predictions.set(file.download_url, results.map(r => r.label.toLowerCase()));
+    };
   }
 
   gallery.appendChild(postDiv);
@@ -104,25 +120,39 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Controls
-themeButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    document.body.className = button.dataset.theme;
+// Search filtering
+searchInput.addEventListener('input', () => {
+  const term = searchInput.value.toLowerCase();
+  document.querySelectorAll('.post').forEach(post => {
+    const imgOrVideo = post.querySelector('img,video');
+    if (!imgOrVideo) return;
+    const tags = predictions.get(imgOrVideo.src) || [];
+    if (tags.some(tag => tag.includes(term)) || term === '') {
+      post.style.display = '';
+    } else {
+      post.style.display = 'none';
+    }
   });
 });
 
+// Theme toggle
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+});
+
+// Arrows
 upBtn.addEventListener('click', () => window.scrollBy({ top: -200, behavior: 'smooth' }));
 downBtn.addEventListener('click', () => window.scrollBy({ top: 200, behavior: 'smooth' }));
 leftBtn.addEventListener('click', () => window.scrollBy({ left: -200, behavior: 'smooth' }));
 rightBtn.addEventListener('click', () => window.scrollBy({ left: 200, behavior: 'smooth' }));
 
+// Zoom
 zoomInBtn.addEventListener('click', () => {
   scaleFactor *= 1.1;
   gallery.innerHTML = '';
   loadedTiles.clear();
   setupDynamicGrid();
 });
-
 zoomOutBtn.addEventListener('click', () => {
   scaleFactor /= 1.1;
   gallery.innerHTML = '';
@@ -131,9 +161,8 @@ zoomOutBtn.addEventListener('click', () => {
 });
 
 // INIT
-(async function init() {
-  gallery.style.position = 'absolute';
+async function init() {
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
-})();
+}
