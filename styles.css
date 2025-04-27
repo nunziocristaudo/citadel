@@ -73,6 +73,7 @@ main#gallery {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 2px;
   padding: 2px;
+  /* Removed min-width/min-height — dynamic now! */
 }
 
 .post {
