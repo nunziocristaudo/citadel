@@ -19,7 +19,7 @@ body {
   cursor: grab;
 }
 
-/* Disable pointer events inside posts */
+/* Posts: disable pointer events inside */
 .post {
   pointer-events: none;
 }
@@ -39,6 +39,7 @@ body {
   transform: scale(1.08);
 }
 
+/* Fade-in animation */
 .fade-in {
   opacity: 0;
   transform: scale(0.95);
@@ -50,7 +51,7 @@ body {
   transform: scale(1);
 }
 
-/* Control panel styles */
+/* Control panel floating buttons */
 #control-panel {
   position: fixed;
   bottom: 20px;
@@ -61,7 +62,7 @@ body {
   gap: 10px;
 }
 
-/* Buttons inside the control panel */
+/* Control buttons inside panel */
 #arrow-buttons button,
 #zoom-in,
 #zoom-out,
@@ -90,7 +91,7 @@ body {
   justify-content: center;
 }
 
-/* Prevent text selection on control buttons */
+/* Prevent selection on controls */
 #arrow-buttons,
 #zoom-in,
 #zoom-out,
@@ -105,7 +106,7 @@ body {
     pointer-events: none;
     transition: opacity 0.5s ease;
   }
-
+  
   #control-panel.show-controls {
     opacity: 1;
     pointer-events: auto;
