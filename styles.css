@@ -8,18 +8,23 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: Arial, sans-serif;
-  overflow: scroll;
+  overflow: hidden;
   height: 100vh;
 }
 
 #gallery {
-  position: relative;
+  position: absolute;
   width: 10000px;
   height: 10000px;
+  transform-origin: top left;
   cursor: grab;
 }
 
 .post {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -47,6 +52,15 @@ body {
 .fade-in.show {
   opacity: 1;
   transform: scale(1);
+}
+
+#loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: var(--text-color);
 }
 
 #control-panel {
@@ -100,6 +114,7 @@ body {
     pointer-events: none;
     transition: opacity 0.5s ease;
   }
+
   #control-panel.show-controls {
     opacity: 1;
     pointer-events: auto;
