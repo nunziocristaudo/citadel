@@ -1,121 +1,47 @@
 const gallery = document.getElementById('gallery');
-const TILE_SIZE = 150;
-const GAP_SIZE = 2;
-const VIEWPORT_BUFFER = 2;
-const WORLD_SIZE = 5000;
-let scaleFactor = 1;
-let loadedTiles = new Set();
-let images = [];
-let imageIndex = 0;
+const loader = document.getElementById('loader');
 
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
+// Your Worker endpoint
+const workerURL = 'https://quiet-mouse-8001.flaxen-huskier-06.workers.dev/';
+// Your R2 public bucket base URL
+const baseURL = 'https://pub-be000e14346943c7950390b5860c5564.r2.dev/';
 
-async function fetchImages() {
+async function loadGallery() {
   try {
-    const response = await fetch('https://quiet-mouse-8001.flaxen-huskier-06.workers.dev');
-    if (!response.ok) throw new Error('Error fetching image list');
-    const filenames = await response.json();
-    images = filenames
-      .filter(name => name.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
-      .map(name => `https://pub-be000e14346943c7950390b5860c5564.r2.dev/${name}`);
-    shuffleArray(images);
-  } catch (error) {
-    console.error('Failed to fetch image list:', error);
-    alert('Failed to load images. Please try again later.');
-  }
-}
+    const response = await fetch(workerURL);
+    const files = await response.json();
 
-function placeTile(x, y) {
-  const key = `${x},${y}`;
-  if (loadedTiles.has(key)) return;
-  if (images.length === 0) return;
+    files.forEach(file => {
+      const post = document.createElement('div');
+      post.className = 'post fade-in';
 
-  const fileUrl = images[imageIndex % images.length];
-  imageIndex++;
-
-  const postDiv = document.createElement('div');
-  postDiv.className = 'post fade-in';
-  postDiv.style.left = `${x * (TILE_SIZE + GAP_SIZE) * scaleFactor}px`;
-  postDiv.style.top = `${y * (TILE_SIZE + GAP_SIZE) * scaleFactor}px`;
-  postDiv.style.width = `${TILE_SIZE * scaleFactor}px`;
-  postDiv.style.height = `${TILE_SIZE * scaleFactor}px`;
-
-  if (fileUrl.endsWith('.mp4')) {
-    const video = document.createElement('video');
-    video.src = fileUrl;
-    video.muted = true;
-    video.autoplay = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.loading = "lazy";
-    postDiv.appendChild(video);
-  } else {
-    const img = document.createElement('img');
-    img.src = fileUrl;
-    img.alt = '';
-    img.loading = "lazy";
-    postDiv.appendChild(img);
-  }
-
-  gallery.appendChild(postDiv);
-  loadedTiles.add(key);
-  activateFadeIn();
-}
-
-function setupDynamicGrid() {
-  window.addEventListener('scroll', () => {
-    const scrollLeft = window.scrollX;
-    const scrollTop = window.scrollY;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    const leftEdge = Math.floor(scrollLeft / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-    const rightEdge = Math.ceil((scrollLeft + viewportWidth) / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-    const topEdge = Math.floor(scrollTop / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-    const bottomEdge = Math.ceil((scrollTop + viewportHeight) / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-
-    for (let x = leftEdge - VIEWPORT_BUFFER; x <= rightEdge + VIEWPORT_BUFFER; x++) {
-      for (let y = topEdge - VIEWPORT_BUFFER; y <= bottomEdge + VIEWPORT_BUFFER; y++) {
-        placeTile(x, y);
+      if (file.match(/\.(mp4|mov|webm)$/i)) {
+        const video = document.createElement('video');
+        video.src = baseURL + file;
+        video.controls = true;
+        video.loading = 'lazy';
+        post.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = baseURL + file;
+        img.alt = file;
+        img.loading = 'lazy';
+        post.appendChild(img);
       }
-    }
-  });
-}
 
-function activateFadeIn() {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
+      gallery.appendChild(post);
+
+      setTimeout(() => {
+        post.classList.add('show');
+      }, 10);
     });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
-}
-
-function loadInitialTiles() {
-  const centerX = Math.floor(window.scrollX / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-  const centerY = Math.floor(window.scrollY / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-
-  const buffer = window.innerWidth < 768 ? 3 : 5;
-
-  for (let x = centerX - buffer; x <= centerX + buffer; x++) {
-    for (let y = centerY - buffer; y <= centerY + buffer; y++) {
-      placeTile(x, y);
-    }
+  } catch (error) {
+    console.error('Failed to load gallery:', error);
+    gallery.innerHTML = '<p>Failed to load gallery.</p>';
+  } finally {
+    loader.style.display = 'none';
   }
 }
 
-(async function init() {
-  gallery.style.position = 'absolute';
-  await fetchImages();
-  window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
-  setupDynamicGrid();
-  loadInitialTiles();
-})();
+// Start loading after DOM is ready
+document.addEventListener('DOMContentLoaded', loadGallery);
