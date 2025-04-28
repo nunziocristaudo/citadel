@@ -21,8 +21,10 @@ function shuffleArray(array) {
 async function fetchImages() {
   const response = await fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images');
   const files = await response.json();
+
   images = files
-    .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
+    .filter(file => file.type === 'file') // Only real files, not folders
+    .filter(file => file.download_url && file.download_url.match(/\.(jpg|jpeg|png|gif|mp4)$/i)) // Only image/video files
     .map(file => file.download_url);
 
   shuffleArray(images);
@@ -184,6 +186,6 @@ document.getElementById('arrow-right').addEventListener('click', () => window.sc
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
-  loadInitialTiles(); // ✅ <- THIS FIX
+  loadInitialTiles();
   setupMobileControlReveal();
 })();
