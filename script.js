@@ -24,11 +24,11 @@ async function fetchImages() {
   images = files
     .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
     .map(file => file.download_url);
-  
+
   shuffleArray(images);
 }
 
-// Place a tile (no click, no drag, no right-click)
+// Place a tile (fully protected)
 function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
@@ -53,22 +53,12 @@ function placeTile(x, y) {
     video.playsInline = true;
     video.loading = "lazy";
 
-    // Prevent user interactions
-    video.ondragstart = () => false;
-    video.oncontextmenu = () => false;
-    video.ondblclick = (e) => { e.preventDefault(); return false; };
-
     postDiv.appendChild(video);
   } else {
     const img = document.createElement('img');
     img.src = fileUrl;
     img.alt = '';
     img.loading = "lazy";
-
-    // Prevent user interactions
-    img.ondragstart = () => false;
-    img.oncontextmenu = () => false;
-    img.ondblclick = (e) => { e.preventDefault(); return false; };
 
     postDiv.appendChild(img);
   }
@@ -99,7 +89,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in animation when images/videos appear
+// Fade-in animation
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -112,7 +102,16 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Initial loading
+// Disable all click actions on media
+gallery.addEventListener('click', (e) => {
+  const target = e.target;
+  if (target.tagName === 'IMG' || target.tagName === 'VIDEO') {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// Initial load
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
