@@ -139,12 +139,33 @@ function enablePinchZoom() {
   }, { passive: false });
 }
 
+function enableKeyboardArrows() {
+  window.addEventListener('keydown', (e) => {
+    const moveAmount = window.innerWidth * 0.5;
+    switch (e.key) {
+      case 'ArrowLeft':
+        window.scrollBy(-moveAmount, 0);
+        break;
+      case 'ArrowRight':
+        window.scrollBy(moveAmount, 0);
+        break;
+      case 'ArrowUp':
+        window.scrollBy(0, -moveAmount);
+        break;
+      case 'ArrowDown':
+        window.scrollBy(0, moveAmount);
+        break;
+    }
+  });
+}
+
 async function init() {
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupInfiniteGrid();
   enableMouseDrag();
   enablePinchZoom();
+  enableKeyboardArrows();
 }
 
 document.addEventListener('DOMContentLoaded', init);
