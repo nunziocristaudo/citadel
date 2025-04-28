@@ -1,9 +1,7 @@
 const gallery = document.getElementById('gallery');
 const loader = document.getElementById('loader');
 
-// Your Worker endpoint
 const workerURL = 'https://quiet-mouse-8001.flaxen-huskier-06.workers.dev/';
-// Your R2 public bucket base URL
 const baseURL = 'https://pub-be000e14346943c7950390b5860c5564.r2.dev/';
 
 let images = [];
@@ -12,8 +10,10 @@ const TILE_SIZE = 150;
 const GAP_SIZE = 2;
 const VIEWPORT_BUFFER = 2;
 const WORLD_SIZE = 10000;
-let scaleFactor = 1;
 let imageIndex = 0;
+let scaleFactor = 1;
+let isDragging = false;
+let startX, startY, scrollLeft, scrollTop;
 
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -97,36 +97,54 @@ function setupInfiniteGrid() {
   });
 }
 
-document.getElementById('zoom-in').addEventListener('click', () => {
-  scaleFactor *= 1.1;
-  gallery.style.transform = `scale(${scaleFactor})`;
-});
+function enableMouseDrag() {
+  window.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    gallery.style.cursor = 'grabbing';
+    startX = e.pageX - window.scrollX;
+    startY = e.pageY - window.scrollY;
+    scrollLeft = window.scrollX;
+    scrollTop = window.scrollY;
+  });
 
-document.getElementById('zoom-out').addEventListener('click', () => {
-  scaleFactor /= 1.1;
-  gallery.style.transform = `scale(${scaleFactor})`;
-});
+  window.addEventListener('mouseleave', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
 
-document.getElementById('theme-toggle').addEventListener('click', () => {
-  const root = document.documentElement;
-  if (root.style.getPropertyValue('--bg-color') === 'white') {
-    root.style.setProperty('--bg-color', 'black');
-    root.style.setProperty('--text-color', 'white');
-  } else {
-    root.style.setProperty('--bg-color', 'white');
-    root.style.setProperty('--text-color', 'black');
-  }
-});
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
 
-document.getElementById('arrow-up').addEventListener('click', () => window.scrollBy(0, -window.innerHeight * 0.5));
-document.getElementById('arrow-down').addEventListener('click', () => window.scrollBy(0, window.innerHeight * 0.5));
-document.getElementById('arrow-left').addEventListener('click', () => window.scrollBy(-window.innerWidth * 0.5, 0));
-document.getElementById('arrow-right').addEventListener('click', () => window.scrollBy(window.innerWidth * 0.5, 0));
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.pageX - startX;
+    const y = e.pageY - startY;
+    window.scrollTo(scrollLeft - x, scrollTop - y);
+  });
+}
+
+function enablePinchZoom() {
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        scaleFactor *= 1.1;
+      } else {
+        scaleFactor /= 1.1;
+      }
+      gallery.style.transform = `scale(${scaleFactor})`;
+    }
+  }, { passive: false });
+}
 
 async function init() {
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupInfiniteGrid();
+  enableMouseDrag();
+  enablePinchZoom();
 }
 
 document.addEventListener('DOMContentLoaded', init);
