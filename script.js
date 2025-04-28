@@ -21,10 +21,8 @@ function shuffleArray(array) {
 async function fetchImages() {
   const response = await fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images');
   const files = await response.json();
-
   images = files
-    .filter(file => file.type === 'file') // Only real files, not folders
-    .filter(file => file.download_url && file.download_url.match(/\.(jpg|jpeg|png|gif|mp4)$/i)) // Only image/video files
+    .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
     .map(file => file.download_url);
 
   shuffleArray(images);
@@ -54,12 +52,14 @@ function placeTile(x, y) {
     video.loop = true;
     video.playsInline = true;
     video.loading = "lazy";
+
     postDiv.appendChild(video);
   } else {
     const img = document.createElement('img');
     img.src = fileUrl;
     img.alt = '';
     img.loading = "lazy";
+
     postDiv.appendChild(img);
   }
 
@@ -89,7 +89,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in animation for tiles
+// Fade-in animation when tiles appear
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -102,43 +102,6 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Load initial visible tiles immediately after fetching
-function loadInitialTiles() {
-  const centerX = Math.floor(window.scrollX / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-  const centerY = Math.floor(window.scrollY / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
-
-  const buffer = window.innerWidth < 768 ? 3 : 5; // Smaller buffer on mobile
-
-  for (let x = centerX - buffer; x <= centerX + buffer; x++) {
-    for (let y = centerY - buffer; y <= centerY + buffer; y++) {
-      placeTile(x, y);
-    }
-  }
-}
-
-// Hide control buttons on mobile, reveal on tap
-function setupMobileControlReveal() {
-  if (window.innerWidth > 768) return; // Only on mobile
-
-  let timer;
-
-  function showControls() {
-    const panel = document.getElementById('control-panel');
-    panel.classList.add('show-controls');
-
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      panel.classList.remove('show-controls');
-    }, 5000); // Hide after 5 seconds
-  }
-
-  window.addEventListener('click', (e) => {
-    if (e.clientX > window.innerWidth * 0.7 && e.clientY < window.innerHeight * 0.3) {
-      showControls();
-    }
-  });
-}
-
 // Disable all click actions on media
 gallery.addEventListener('click', (e) => {
   const target = e.target;
@@ -148,7 +111,7 @@ gallery.addEventListener('click', (e) => {
   }
 });
 
-// Floating controls (Zoom, Arrows, Theme Toggle)
+// Reconnect Floating Controls
 
 // Zoom In
 document.getElementById('zoom-in').addEventListener('click', () => {
@@ -180,12 +143,10 @@ document.getElementById('arrow-down').addEventListener('click', () => window.scr
 document.getElementById('arrow-left').addEventListener('click', () => window.scrollBy(-window.innerWidth * 0.5, 0));
 document.getElementById('arrow-right').addEventListener('click', () => window.scrollBy(window.innerWidth * 0.5, 0));
 
-// Initialisation
+// Init everything
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
-  loadInitialTiles();
-  setupMobileControlReveal();
 })();
