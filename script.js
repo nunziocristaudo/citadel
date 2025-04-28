@@ -89,7 +89,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in animation
+// Fade-in animation when tiles appear
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -111,7 +111,39 @@ gallery.addEventListener('click', (e) => {
   }
 });
 
-// Initial load
+// Reconnect Floating Controls
+
+// Zoom In
+document.getElementById('zoom-in').addEventListener('click', () => {
+  scaleFactor *= 1.1;
+  gallery.style.transform = `scale(${scaleFactor})`;
+});
+
+// Zoom Out
+document.getElementById('zoom-out').addEventListener('click', () => {
+  scaleFactor /= 1.1;
+  gallery.style.transform = `scale(${scaleFactor})`;
+});
+
+// Theme Toggle (Light/Dark)
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const root = document.documentElement;
+  if (root.style.getPropertyValue('--bg-color') === 'white') {
+    root.style.setProperty('--bg-color', 'black');
+    root.style.setProperty('--text-color', 'white');
+  } else {
+    root.style.setProperty('--bg-color', 'white');
+    root.style.setProperty('--text-color', 'black');
+  }
+});
+
+// Arrow Movement Controls
+document.getElementById('arrow-up').addEventListener('click', () => window.scrollBy(0, -window.innerHeight * 0.5));
+document.getElementById('arrow-down').addEventListener('click', () => window.scrollBy(0, window.innerHeight * 0.5));
+document.getElementById('arrow-left').addEventListener('click', () => window.scrollBy(-window.innerWidth * 0.5, 0));
+document.getElementById('arrow-right').addEventListener('click', () => window.scrollBy(window.innerWidth * 0.5, 0));
+
+// Init everything
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
