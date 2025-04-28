@@ -28,7 +28,7 @@ async function fetchImages() {
   shuffleArray(images);
 }
 
-// Place a tile (no click event)
+// Place a tile (no click, no drag, no right-click)
 function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
@@ -52,12 +52,24 @@ function placeTile(x, y) {
     video.loop = true;
     video.playsInline = true;
     video.loading = "lazy";
+
+    // Prevent user interactions
+    video.ondragstart = () => false;
+    video.oncontextmenu = () => false;
+    video.ondblclick = (e) => { e.preventDefault(); return false; };
+
     postDiv.appendChild(video);
   } else {
     const img = document.createElement('img');
     img.src = fileUrl;
     img.alt = '';
     img.loading = "lazy";
+
+    // Prevent user interactions
+    img.ondragstart = () => false;
+    img.oncontextmenu = () => false;
+    img.ondblclick = (e) => { e.preventDefault(); return false; };
+
     postDiv.appendChild(img);
   }
 
@@ -87,7 +99,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in animation
+// Fade-in animation when images/videos appear
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -100,7 +112,7 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Init
+// Initial loading
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
