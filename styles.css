@@ -1,6 +1,13 @@
 :root {
-  --bg-color: white;
-  --text-color: black;
+  --bg-color: black;
+  --text-color: white;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-color: white;
+    --text-color: black;
+  }
 }
 
 body {
@@ -61,62 +68,4 @@ body {
   transform: translate(-50%, -50%);
   font-size: 20px;
   color: var(--text-color);
-}
-
-#control-panel {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#arrow-buttons button,
-#zoom-in,
-#zoom-out,
-#theme-toggle {
-  background: rgba(255, 255, 255, 0.5);
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
-  font-size: 22px;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.3s;
-}
-
-#arrow-buttons button:hover,
-#zoom-in:hover,
-#zoom-out:hover,
-#theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.8);
-  transform: scale(1.1);
-}
-
-.arrow-row {
-  display: flex;
-  gap: 10px;
-  margin: 5px 0;
-  justify-content: center;
-}
-
-#arrow-buttons,
-#zoom-in,
-#zoom-out,
-#theme-toggle {
-  user-select: none;
-}
-
-@media (max-width: 768px) {
-  #control-panel {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.5s ease;
-  }
-
-  #control-panel.show-controls {
-    opacity: 1;
-    pointer-events: auto;
-  }
 }
