@@ -102,8 +102,6 @@ function activateFadeIn() {
 
 // Load initial visible tiles immediately after fetching
 function loadInitialTiles() {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
   const centerX = Math.floor(window.scrollX / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
   const centerY = Math.floor(window.scrollY / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
 
@@ -116,6 +114,29 @@ function loadInitialTiles() {
   }
 }
 
+// Hide control buttons on mobile, reveal on tap
+function setupMobileControlReveal() {
+  if (window.innerWidth > 768) return; // Only on mobile
+
+  let timer;
+
+  function showControls() {
+    const panel = document.getElementById('control-panel');
+    panel.classList.add('show-controls');
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      panel.classList.remove('show-controls');
+    }, 5000); // Hide after 5 seconds
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.clientX > window.innerWidth * 0.7 && e.clientY < window.innerHeight * 0.3) {
+      showControls();
+    }
+  });
+}
+
 // Disable all click actions on media
 gallery.addEventListener('click', (e) => {
   const target = e.target;
@@ -125,7 +146,7 @@ gallery.addEventListener('click', (e) => {
   }
 });
 
-// Reconnect Floating Controls
+// Floating controls (Zoom, Arrows, Theme Toggle)
 
 // Zoom In
 document.getElementById('zoom-in').addEventListener('click', () => {
@@ -164,4 +185,5 @@ document.getElementById('arrow-right').addEventListener('click', () => window.sc
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
   loadInitialTiles();
+  setupMobileControlReveal();
 })();
