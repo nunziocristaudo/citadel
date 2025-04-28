@@ -184,6 +184,6 @@ document.getElementById('arrow-right').addEventListener('click', () => window.sc
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
-  loadInitialTiles();
+  loadInitialTiles(); // ✅ <- THIS FIX
   setupMobileControlReveal();
 })();
