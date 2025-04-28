@@ -2,42 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Citadel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TinySquares</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <img src="https://pub-be000e14346943c7950390b5860c5564.r2.dev/star.jpg" alt="Profile Picture" class="profile-pic">
-    <h1>@nunziocristaudo</h1>
-    <p>Following the Sun</p>
-  </header>
+  <main id="gallery"></main>
 
-  <div id="world">
-    <main id="gallery"></main>
-  </div>
-
+  <!-- Floating control panel -->
   <div id="control-panel">
-    <div id="theme-buttons">
-      <button data-theme="light">🟡</button>
-      <button data-theme="dark">🌑</button>
-    </div>
-    <div id="zoom-buttons">
-      <button id="zoom-in">➕</button>
-      <button id="zoom-out">➖</button>
-    </div>
     <div id="arrow-buttons">
-      <button id="up">⬆️</button>
+      <button id="arrow-up">⬆️</button>
       <div class="arrow-row">
-        <button id="left">⬅️</button>
-        <button id="down">⬇️</button>
-        <button id="right">➡️</button>
+        <button id="arrow-left">⬅️</button>
+        <button id="arrow-right">➡️</button>
       </div>
+      <button id="arrow-down">⬇️</button>
     </div>
+    <button id="zoom-in">➕</button>
+    <button id="zoom-out">➖</button>
+    <button id="theme-toggle">🟡</button>
   </div>
 
-  <footer>
-    Built with ❤️
+  <script src="script.js"></script>
+</body>
+</html>
+
   </footer>
 
   <script src="script.js"></script>
