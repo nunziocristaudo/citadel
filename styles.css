@@ -142,3 +142,18 @@ footer {
   --bg-color: #00001a;
   --text-color: #cceeff;
 }
+/* Hide control panel by default on mobile */
+@media (max-width: 768px) {
+  #control-panel {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  
+  #control-panel.show-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+
