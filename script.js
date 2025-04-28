@@ -2,7 +2,7 @@ const gallery = document.getElementById('gallery');
 const loader = document.getElementById('loader');
 
 const workerURL = 'https://quiet-mouse-8001.flaxen-huskier-06.workers.dev/';
-const baseURL = 'https://pub-be000e14346943c7950390b5860c5564.r2.dev/';
+const baseURL = 'https://dev.tinysquares.io/';
 
 let images = [];
 let loadedTiles = new Set();
