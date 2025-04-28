@@ -3,13 +3,6 @@
   --text-color: white;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg-color: white;
-    --text-color: black;
-  }
-}
-
 body {
   margin: 0;
   background-color: var(--bg-color);
@@ -53,7 +46,7 @@ body {
 .fade-in {
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .fade-in.show {
