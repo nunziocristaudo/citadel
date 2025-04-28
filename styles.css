@@ -1,52 +1,25 @@
 :root {
-  --bg-color: #fff;
-  --text-color: #000;
-  --primary-accent: #0077ff;
+  --bg-color: white;
+  --text-color: black;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--bg-color);
+  background-color: var(--bg-color);
   color: var(--text-color);
-  overflow-y: scroll;
-  min-height: 100vh;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
-}
-
-#loader {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  color: var(--primary-accent);
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  font-family: Arial, sans-serif;
+  overflow: scroll;
+  height: 100vh;
 }
 
 #gallery {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: flex-start;
-  width: 100%;
-  min-height: 100vh;
-  padding: 10px;
-  gap: 10px;
+  position: relative;
+  width: 10000px;
+  height: 10000px;
+  cursor: grab;
 }
 
 .post {
-  flex: 0 1 150px;
-  height: 150px;
-  overflow: hidden;
-  background: #f0f0f0;
-  position: relative;
-  border-radius: 8px;
   pointer-events: none;
 }
 
@@ -74,4 +47,61 @@ body {
 .fade-in.show {
   opacity: 1;
   transform: scale(1);
+}
+
+#control-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#arrow-buttons button,
+#zoom-in,
+#zoom-out,
+#theme-toggle {
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+
+#arrow-buttons button:hover,
+#zoom-in:hover,
+#zoom-out:hover,
+#theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.arrow-row {
+  display: flex;
+  gap: 10px;
+  margin: 5px 0;
+  justify-content: center;
+}
+
+#arrow-buttons,
+#zoom-in,
+#zoom-out,
+#theme-toggle {
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  #control-panel {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  #control-panel.show-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
