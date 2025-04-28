@@ -22,6 +22,7 @@ fetch(workerURL)
       }
 
       gallery.appendChild(post);
+
       setTimeout(() => {
         post.classList.add('show');
       }, 10);

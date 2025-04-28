@@ -10,17 +10,24 @@ body {
   font-family: Arial, sans-serif;
   overflow: scroll;
   height: 100vh;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
 }
 
 #gallery {
-  position: relative;
-  width: 10000px;
-  height: 10000px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  width: 100%;
+  min-height: 100vh;
   cursor: grab;
+  gap: 10px; /* Optional: spacing between images */
 }
 
 .post {
   pointer-events: none;
+  width: 150px; /* Each image/video size */
+  height: 150px;
 }
 
 .post img,
