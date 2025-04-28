@@ -1,42 +1,40 @@
 const gallery = document.getElementById('gallery');
-const themeButtons = document.querySelectorAll('#theme-buttons button');
-const upBtn = document.getElementById('up');
-const downBtn = document.getElementById('down');
-const leftBtn = document.getElementById('left');
-const rightBtn = document.getElementById('right');
-const zoomInBtn = document.getElementById('zoom-in');
-const zoomOutBtn = document.getElementById('zoom-out');
 
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
 const VIEWPORT_BUFFER = 2;
-const WORLD_SIZE = 10000;
+const WORLD_SIZE = 5000;
 let scaleFactor = 1;
 let loadedTiles = new Set();
 let images = [];
 let imageIndex = 0;
-let lastFetched = 0;
 
-// Fetch images and videos
-async function fetchImages() {
-  const now = Date.now();
-  if (images.length === 0 || now - lastFetched > 5 * 60 * 1000) {
-    const response = await fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images');
-    const files = await response.json();
-    images = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i));
-    lastFetched = now;
+// Shuffle array function
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
 }
 
-// Place a tile
-async function placeTile(x, y) {
+// Fetch images dynamically from GitHub
+async function fetchImages() {
+  const response = await fetch('https://api.github.com/repos/nunziocristaudo/citadel/contents/images');
+  const files = await response.json();
+  images = files
+    .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
+    .map(file => file.download_url);
+
+  shuffleArray(images);
+}
+
+// Place a tile (fully protected)
+function placeTile(x, y) {
   const key = `${x},${y}`;
   if (loadedTiles.has(key)) return;
-  
-  await fetchImages();
   if (images.length === 0) return;
 
-  const file = images[imageIndex % images.length];
+  const fileUrl = images[imageIndex % images.length];
   imageIndex++;
 
   const postDiv = document.createElement('div');
@@ -46,22 +44,20 @@ async function placeTile(x, y) {
   postDiv.style.width = `${TILE_SIZE * scaleFactor}px`;
   postDiv.style.height = `${TILE_SIZE * scaleFactor}px`;
 
-  if (file.name.endsWith('.mp4')) {
+  if (fileUrl.endsWith('.mp4')) {
     const video = document.createElement('video');
-    video.src = file.download_url;
+    video.src = fileUrl;
     video.muted = true;
     video.autoplay = true;
     video.loop = true;
     video.playsInline = true;
     video.loading = "lazy";
-    video.addEventListener('click', () => window.open(file.download_url, '_blank'));
     postDiv.appendChild(video);
   } else {
     const img = document.createElement('img');
-    img.src = file.download_url;
-    img.alt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+    img.src = fileUrl;
+    img.alt = '';
     img.loading = "lazy";
-    img.addEventListener('click', () => window.open(file.download_url, '_blank'));
     postDiv.appendChild(img);
   }
 
@@ -70,9 +66,9 @@ async function placeTile(x, y) {
   activateFadeIn();
 }
 
-// Dynamic loading
+// Dynamic loading while scrolling
 function setupDynamicGrid() {
-  window.addEventListener('scroll', async () => {
+  window.addEventListener('scroll', () => {
     const scrollLeft = window.scrollX;
     const scrollTop = window.scrollY;
     const viewportWidth = window.innerWidth;
@@ -91,7 +87,7 @@ function setupDynamicGrid() {
   });
 }
 
-// Fade-in
+// Fade-in animation for tiles
 function activateFadeIn() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -104,36 +100,68 @@ function activateFadeIn() {
   document.querySelectorAll('.fade-in:not(.show)').forEach(el => observer.observe(el));
 }
 
-// Controls
-themeButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    document.body.className = button.dataset.theme;
-  });
+// Load initial visible tiles immediately after fetching
+function loadInitialTiles() {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const centerX = Math.floor(window.scrollX / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
+  const centerY = Math.floor(window.scrollY / ((TILE_SIZE + GAP_SIZE) * scaleFactor));
+
+  const buffer = window.innerWidth < 768 ? 3 : 5; // Smaller buffer on mobile
+
+  for (let x = centerX - buffer; x <= centerX + buffer; x++) {
+    for (let y = centerY - buffer; y <= centerY + buffer; y++) {
+      placeTile(x, y);
+    }
+  }
+}
+
+// Disable all click actions on media
+gallery.addEventListener('click', (e) => {
+  const target = e.target;
+  if (target.tagName === 'IMG' || target.tagName === 'VIDEO') {
+    e.preventDefault();
+    return false;
+  }
 });
 
-upBtn.addEventListener('click', () => window.scrollBy({ top: -200, behavior: 'smooth' }));
-downBtn.addEventListener('click', () => window.scrollBy({ top: 200, behavior: 'smooth' }));
-leftBtn.addEventListener('click', () => window.scrollBy({ left: -200, behavior: 'smooth' }));
-rightBtn.addEventListener('click', () => window.scrollBy({ left: 200, behavior: 'smooth' }));
+// Reconnect Floating Controls
 
-zoomInBtn.addEventListener('click', () => {
+// Zoom In
+document.getElementById('zoom-in').addEventListener('click', () => {
   scaleFactor *= 1.1;
-  gallery.innerHTML = '';
-  loadedTiles.clear();
-  setupDynamicGrid();
+  gallery.style.transform = `scale(${scaleFactor})`;
 });
 
-zoomOutBtn.addEventListener('click', () => {
+// Zoom Out
+document.getElementById('zoom-out').addEventListener('click', () => {
   scaleFactor /= 1.1;
-  gallery.innerHTML = '';
-  loadedTiles.clear();
-  setupDynamicGrid();
+  gallery.style.transform = `scale(${scaleFactor})`;
 });
 
-// INIT
+// Theme Toggle (Light/Dark)
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const root = document.documentElement;
+  if (root.style.getPropertyValue('--bg-color') === 'white') {
+    root.style.setProperty('--bg-color', 'black');
+    root.style.setProperty('--text-color', 'white');
+  } else {
+    root.style.setProperty('--bg-color', 'white');
+    root.style.setProperty('--text-color', 'black');
+  }
+});
+
+// Arrow Movement Controls
+document.getElementById('arrow-up').addEventListener('click', () => window.scrollBy(0, -window.innerHeight * 0.5));
+document.getElementById('arrow-down').addEventListener('click', () => window.scrollBy(0, window.innerHeight * 0.5));
+document.getElementById('arrow-left').addEventListener('click', () => window.scrollBy(-window.innerWidth * 0.5, 0));
+document.getElementById('arrow-right').addEventListener('click', () => window.scrollBy(window.innerWidth * 0.5, 0));
+
+// Initialisation
 (async function init() {
   gallery.style.position = 'absolute';
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
   setupDynamicGrid();
+  loadInitialTiles();
 })();
