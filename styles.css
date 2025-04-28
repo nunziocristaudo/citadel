@@ -12,52 +12,29 @@ body {
   height: 100vh;
 }
 
-header {
-  text-align: center;
-  padding: 1rem;
-  z-index: 10;
+#gallery {
   position: relative;
-}
-
-.profile-pic {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-h1, p {
-  margin: 0;
-}
-
-#world {
   width: 10000px;
   height: 10000px;
-  position: relative;
-}
-
-#gallery {
-  position: absolute;
-  width: 100%;
-  height: 100%;
   cursor: grab;
 }
 
 .post {
-  width: 150px;
-  height: 150px;
-  overflow: hidden;
-  position: absolute;
+  pointer-events: none;
 }
 
-.post img, .post video {
+.post img,
+.post video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
+  user-select: none;
   transition: transform 0.3s ease;
 }
 
-.post img:hover, .post video:hover {
+.post img:hover,
+.post video:hover {
   transform: scale(1.08);
 }
 
@@ -72,25 +49,21 @@ h1, p {
   transform: scale(1);
 }
 
-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.8rem;
-}
-
-/* Floating Controls */
 #control-panel {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  bottom: 20px;
+  right: 20px;
   z-index: 999;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-#theme-buttons button, #zoom-buttons button, #arrow-buttons button {
-  background: rgba(255, 255, 255, 0.4);
+#arrow-buttons button,
+#zoom-in,
+#zoom-out,
+#theme-toggle {
+  background: rgba(255, 255, 255, 0.5);
   border: none;
   border-radius: 50%;
   padding: 10px;
@@ -99,46 +72,24 @@ footer {
   transition: background 0.3s, transform 0.3s;
 }
 
-#theme-buttons button:hover, #zoom-buttons button:hover, #arrow-buttons button:hover {
+#arrow-buttons button:hover,
+#zoom-in:hover,
+#zoom-out:hover,
+#theme-toggle:hover {
   background: rgba(255, 255, 255, 0.8);
   transform: scale(1.1);
-}
-
-#zoom-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-#arrow-buttons {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .arrow-row {
   display: flex;
   gap: 10px;
-  margin-top: 5px;
+  margin: 5px 0;
+  justify-content: center;
 }
 
-/* Theme Variants */
-.light {
-  --bg-color: white;
-  --text-color: #111111;
-}
-.dark {
-  --bg-color: #121212;
-  --text-color: #eeeeee;
-}
-.sepia {
-  --bg-color: #f4ecd8;
-  --text-color: #5b4636;
-}
-.night {
-  --bg-color: #00001a;
-  --text-color: #cceeff;
+#arrow-buttons,
+#zoom-in,
+#zoom-out,
+#theme-toggle {
+  user-select: none;
 }
