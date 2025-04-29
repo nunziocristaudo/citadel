@@ -1,6 +1,6 @@
 const gallery = document.getElementById('gallery');
 const tileSize = 150;
-const bufferTiles = 3; // Tiles outside the view to preload
+const bufferTiles = 3;
 let tiles = new Map();
 
 const baseURL = 'https://dev.tinysquares.io/';
@@ -31,6 +31,22 @@ function randomFile() {
   return files.length ? files[Math.floor(Math.random() * files.length)] : '';
 }
 
+function createPost(fileUrl) {
+  const ext = fileUrl.split('.').pop().toLowerCase();
+  let post;
+  if (ext === 'mp4') {
+    post = document.createElement('video');
+    post.muted = true;
+    post.loop = true;
+    post.autoplay = true;
+  } else {
+    post = document.createElement('img');
+  }
+  post.className = 'post fade-in';
+  post.dataset.src = fileUrl;
+  return post;
+}
+
 function updateTiles() {
   const viewWidth = window.innerWidth;
   const viewHeight = window.innerHeight;
@@ -47,26 +63,16 @@ function updateTiles() {
       const key = `${col},${row}`;
       neededTiles.add(key);
       if (!tiles.has(key)) {
-        const post = document.createElement(Math.random() < 0.7 ? 'img' : 'video');
-        post.className = 'post fade-in';
+        const fileUrl = randomFile();
+        const post = createPost(fileUrl);
         post.style.left = `${col * tileSize}px`;
         post.style.top = `${row * tileSize}px`;
-
-        post.dataset.src = randomFile();
-
-        if (post.tagName === 'VIDEO') {
-          post.muted = true;
-          post.loop = true;
-          post.autoplay = true;
-        }
-
         gallery.appendChild(post);
         tiles.set(key, post);
       }
     }
   }
 
-  // Remove unneeded tiles
   for (const [key, tile] of tiles) {
     if (!neededTiles.has(key)) {
       gallery.removeChild(tile);
@@ -106,7 +112,7 @@ function animate() {
   if (!isDragging) {
     if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
       moveCamera(-velocityX, -velocityY);
-      velocityX *= 0.95; // Friction
+      velocityX *= 0.95;
       velocityY *= 0.95;
     }
   }
@@ -121,7 +127,7 @@ gallery.addEventListener('mousedown', e => {
   velocityY = 0;
 });
 
-document.addEventListener('mouseup', e => {
+document.addEventListener('mouseup', () => {
   isDragging = false;
 });
 
@@ -144,7 +150,7 @@ gallery.addEventListener('touchstart', e => {
   dragStartY = touch.clientY;
 });
 
-document.addEventListener('touchend', e => {
+document.addEventListener('touchend', () => {
   isDragging = false;
 });
 
