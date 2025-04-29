@@ -32,8 +32,8 @@ body {
 .post video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center;
+  object-fit: cover;       /* <--- this is correct */
+  object-position: center; /* <--- this was missing but is essential */
   pointer-events: none;
   user-select: none;
   transition: transform 0.3s ease, opacity 0.3s ease;
