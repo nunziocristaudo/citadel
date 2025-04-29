@@ -207,6 +207,10 @@ async function init() {
 
   document.getElementById('loader').style.display = 'none';
 
+  cameraX = gallery.offsetWidth / 2 - window.innerWidth / 2;
+  cameraY = gallery.offsetHeight / 2 - window.innerHeight / 2;
+  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
+
   updateTiles();
   animate();
 }
