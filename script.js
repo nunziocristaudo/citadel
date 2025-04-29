@@ -94,11 +94,25 @@ function lazyLoadTiles() {
       rect.bottom >= 0 &&
       rect.top <= window.innerHeight
     ) {
-      if (!tile.src) {
-        tile.src = tile.dataset.src;
+      if (tile.tagName === 'IMG') {
+        if (!tile.src) {
+          tile.src = tile.dataset.src;
+        }
+      } else if (tile.tagName === 'VIDEO') {
+        if (tile.children.length === 0) {
+          const source = document.createElement('source');
+          source.src = tile.dataset.src;
+          source.type = 'video/mp4';
+          tile.appendChild(source);
+          tile.load();
+        }
       }
     } else {
-      tile.removeAttribute('src');
+      if (tile.tagName === 'IMG') {
+        tile.removeAttribute('src');
+      } else if (tile.tagName === 'VIDEO') {
+        tile.innerHTML = '';
+      }
     }
   });
 }
