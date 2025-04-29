@@ -28,7 +28,10 @@ async function loadAvailableFiles() {
 }
 
 function randomFile() {
-  const files = window.availableFiles || [];
+  const files = (window.availableFiles || []).filter(file => {
+    const lower = file.toLowerCase();
+    return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.mp4');
+  });
   const chosen = files.length ? files[Math.floor(Math.random() * files.length)] : '';
   console.log('Random file chosen:', chosen);
   return chosen;
@@ -98,7 +101,6 @@ function lazyLoadTiles() {
       rect.bottom >= 0 &&
       rect.top <= window.innerHeight
     ) {
-      console.log('Trying to load tile:', tile.dataset.src);
       if (tile.tagName === 'IMG') {
         if (!tile.src) {
           tile.src = tile.dataset.src;
@@ -108,7 +110,6 @@ function lazyLoadTiles() {
           const source = document.createElement('source');
           source.src = tile.dataset.src;
           source.type = 'video/mp4';
-          console.log('Appending source:', source.src);
           tile.appendChild(source);
           tile.load();
         }
@@ -203,16 +204,22 @@ window.addEventListener('keydown', e => {
 
 async function init() {
   await loadAvailableFiles();
+
   console.log('Available Files:', window.availableFiles);
+
   if (!window.availableFiles || window.availableFiles.length === 0) {
     document.getElementById('loader').textContent = 'No images available.';
     return;
   }
+
   document.getElementById('loader').style.display = 'none';
+
   cameraX = gallery.offsetWidth / 2 - window.innerWidth / 2;
   cameraY = gallery.offsetHeight / 2 - window.innerHeight / 2;
   gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
+
   updateTiles();
   animate();
 }
+
 init();
