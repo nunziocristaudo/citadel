@@ -19,7 +19,8 @@ async function loadAvailableFiles() {
   try {
     const response = await fetch(workerURL);
     const filenames = await response.json();
-    window.availableFiles = filenames.map(name => baseURL + name);
+    window.availableFiles = filenames.map(name => baseURL + encodeURIComponent(name));
+    console.log('Loaded files:', window.availableFiles);
   } catch (error) {
     console.error('Failed to load available files', error);
     window.availableFiles = [];
@@ -28,7 +29,9 @@ async function loadAvailableFiles() {
 
 function randomFile() {
   const files = window.availableFiles || [];
-  return files.length ? files[Math.floor(Math.random() * files.length)] : '';
+  const chosen = files.length ? files[Math.floor(Math.random() * files.length)] : '';
+  console.log('Random file chosen:', chosen);
+  return chosen;
 }
 
 function createPost(fileUrl) {
@@ -61,14 +64,14 @@ function updateTiles() {
 
   for (let row = startRow; row <= endRow; row++) {
     for (let col = startCol; col <= endCol; col++) {
-      const key = `${col},${row}`;
+      const key = \`\${col},\${row}\`;
       neededTiles.add(key);
       if (!tiles.has(key)) {
         const fileUrl = randomFile();
         if (fileUrl) {
           const post = createPost(fileUrl);
-          post.style.left = `${col * tileSize}px`;
-          post.style.top = `${row * tileSize}px`;
+          post.style.left = \`\${col * tileSize}px\`;
+          post.style.top = \`\${row * tileSize}px\`;
           gallery.appendChild(post);
           tiles.set(key, post);
         }
@@ -95,6 +98,7 @@ function lazyLoadTiles() {
       rect.bottom >= 0 &&
       rect.top <= window.innerHeight
     ) {
+      console.log('Trying to load tile:', tile.dataset.src);
       if (tile.tagName === 'IMG') {
         if (!tile.src) {
           tile.src = tile.dataset.src;
@@ -104,6 +108,7 @@ function lazyLoadTiles() {
           const source = document.createElement('source');
           source.src = tile.dataset.src;
           source.type = 'video/mp4';
+          console.log('Appending source:', source.src);
           tile.appendChild(source);
           tile.load();
         }
@@ -121,7 +126,7 @@ function lazyLoadTiles() {
 function moveCamera(dx, dy) {
   cameraX += dx;
   cameraY += dy;
-  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
+  gallery.style.transform = \`translate(${-cameraX}px, ${-cameraY}px)\`;
   updateTiles();
 }
 
@@ -198,22 +203,16 @@ window.addEventListener('keydown', e => {
 
 async function init() {
   await loadAvailableFiles();
-
   console.log('Available Files:', window.availableFiles);
-
   if (!window.availableFiles || window.availableFiles.length === 0) {
     document.getElementById('loader').textContent = 'No images available.';
     return;
   }
-
   document.getElementById('loader').style.display = 'none';
-
   cameraX = gallery.offsetWidth / 2 - window.innerWidth / 2;
   cameraY = gallery.offsetHeight / 2 - window.innerHeight / 2;
-  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
-
+  gallery.style.transform = \`translate(${-cameraX}px, ${-cameraY}px)\`;
   updateTiles();
   animate();
 }
-
 init();
