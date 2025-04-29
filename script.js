@@ -1,6 +1,6 @@
 const gallery = document.getElementById('gallery');
 const tileSize = 150;
-const bufferTiles = 3;
+const bufferTiles = 1;
 let tiles = new Map();
 
 const baseURL = 'https://dev.tinysquares.io/';
@@ -14,6 +14,8 @@ let dragStartX = 0;
 let dragStartY = 0;
 let velocityX = 0;
 let velocityY = 0;
+
+let lastMove = 0;
 
 async function loadAvailableFiles() {
   try {
@@ -33,24 +35,29 @@ function randomFile() {
     return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.mp4');
   });
   const chosen = files.length ? files[Math.floor(Math.random() * files.length)] : '';
-  console.log('Random file chosen:', chosen);
   return chosen;
 }
 
 function createPost(fileUrl) {
   const lowerUrl = fileUrl.toLowerCase();
-  let post;
+  const frame = document.createElement('div');
+  frame.className = 'frame';
+  let media;
   if (lowerUrl.includes('.mp4') || lowerUrl.includes('.mov')) {
-    post = document.createElement('video');
-    post.muted = true;
-    post.loop = true;
-    post.autoplay = true;
-    post.playsInline = true;
+    media = document.createElement('video');
+    media.muted = true;
+    media.loop = true;
+    media.autoplay = true;
+    media.playsInline = true;
   } else {
-    post = document.createElement('img');
+    media = document.createElement('img');
   }
+  media.dataset.src = fileUrl;
+  frame.appendChild(media);
+
+  const post = document.createElement('div');
   post.className = 'post fade-in';
-  post.dataset.src = fileUrl;
+  post.appendChild(frame);
   return post;
 }
 
@@ -97,6 +104,7 @@ function updateTiles() {
 
 function lazyLoadTiles() {
   tiles.forEach(tile => {
+    const media = tile.querySelector('img, video');
     const rect = tile.getBoundingClientRect();
     if (
       rect.right >= 0 &&
@@ -104,30 +112,34 @@ function lazyLoadTiles() {
       rect.bottom >= 0 &&
       rect.top <= window.innerHeight
     ) {
-      if (tile.tagName === 'IMG') {
-        if (!tile.src) {
-          tile.src = tile.dataset.src;
+      if (media.tagName === 'IMG') {
+        if (!media.src) {
+          media.src = media.dataset.src;
         }
-      } else if (tile.tagName === 'VIDEO') {
-        if (tile.children.length === 0) {
+      } else if (media.tagName === 'VIDEO') {
+        if (media.children.length === 0) {
           const source = document.createElement('source');
-          source.src = tile.dataset.src;
+          source.src = media.dataset.src;
           source.type = 'video/mp4';
-          tile.appendChild(source);
-          tile.load();
+          media.appendChild(source);
+          media.load();
         }
       }
     } else {
-      if (tile.tagName === 'IMG') {
-        tile.removeAttribute('src');
-      } else if (tile.tagName === 'VIDEO') {
-        tile.innerHTML = '';
+      if (media.tagName === 'IMG') {
+        media.removeAttribute('src');
+      } else if (media.tagName === 'VIDEO') {
+        media.innerHTML = '';
       }
     }
   });
 }
 
 function moveCamera(dx, dy) {
+  const now = Date.now();
+  if (now - lastMove < 16) return; // throttle to ~60fps
+  lastMove = now;
+
   cameraX += dx;
   cameraY += dy;
   gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
@@ -207,7 +219,6 @@ window.addEventListener('keydown', e => {
 
 async function init() {
   await loadAvailableFiles();
-  console.log('Available Files:', window.availableFiles);
   if (!window.availableFiles || window.availableFiles.length === 0) {
     document.getElementById('loader').textContent = 'No images available.';
     return;
