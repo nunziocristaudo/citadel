@@ -14,8 +14,8 @@ body {
 
 #gallery {
   position: absolute;
-  width: 10000px;
-  height: 10000px;
+  width: 100000px;
+  height: 100000px;
   transform-origin: top left;
   cursor: grab;
 }
@@ -46,7 +46,7 @@ body {
 .fade-in {
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
 .fade-in.show {
