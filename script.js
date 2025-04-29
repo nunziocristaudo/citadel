@@ -64,11 +64,13 @@ function updateTiles() {
       neededTiles.add(key);
       if (!tiles.has(key)) {
         const fileUrl = randomFile();
-        const post = createPost(fileUrl);
-        post.style.left = `${col * tileSize}px`;
-        post.style.top = `${row * tileSize}px`;
-        gallery.appendChild(post);
-        tiles.set(key, post);
+        if (fileUrl) {
+          const post = createPost(fileUrl);
+          post.style.left = `${col * tileSize}px`;
+          post.style.top = `${row * tileSize}px`;
+          gallery.appendChild(post);
+          tiles.set(key, post);
+        }
       }
     }
   }
@@ -181,6 +183,16 @@ window.addEventListener('keydown', e => {
 
 async function init() {
   await loadAvailableFiles();
+
+  console.log('Available Files:', window.availableFiles);
+
+  if (!window.availableFiles || window.availableFiles.length === 0) {
+    document.getElementById('loader').textContent = 'No images available.';
+    return;
+  }
+
+  document.getElementById('loader').style.display = 'none';
+
   updateTiles();
   animate();
 }
