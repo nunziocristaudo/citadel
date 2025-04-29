@@ -27,7 +27,10 @@ async function loadAvailableFiles() {
 }
 
 function randomFile() {
-  const files = window.availableFiles || [];
+  const files = (window.availableFiles || []).filter(file => {
+    const ext = file.split('.').pop().toLowerCase();
+    return ['jpg', 'jpeg', 'mp4'].includes(ext);
+  });
   return files.length ? files[Math.floor(Math.random() * files.length)] : '';
 }
 
@@ -39,6 +42,7 @@ function createPost(fileUrl) {
     post.muted = true;
     post.loop = true;
     post.autoplay = true;
+    post.playsInline = true;
   } else {
     post = document.createElement('img');
   }
