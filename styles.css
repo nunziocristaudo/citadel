@@ -10,6 +10,7 @@ body {
   font-family: Arial, sans-serif;
   overflow: hidden;
   height: 100vh;
+  touch-action: none;
 }
 
 #gallery {
@@ -26,7 +27,7 @@ body {
   height: 150px;
   overflow: hidden;
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0.1px solid rgba(255, 255, 255, 0.01);
   box-sizing: border-box;
 }
 
@@ -76,10 +77,9 @@ body {
   color: var(--text-color);
 }
 
-/* Mobile optimization */
 @media (max-width: 768px) {
   .post {
-    width: 100px;
-    height: 100px;
+    width: 33.333vw;
+    height: 33.333vw;
   }
 }
