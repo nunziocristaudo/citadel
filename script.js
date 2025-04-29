@@ -1,222 +1,171 @@
 const gallery = document.getElementById('gallery');
-const tileSize = 150;
-const bufferTiles = 3;
-let tiles = new Map();
+const loader = document.getElementById('loader');
 
-const baseURL = 'https://dev.tinysquares.io/';
 const workerURL = 'https://quiet-mouse-8001.flaxen-huskier-06.workers.dev/';
+const baseURL = 'https://dev.tinysquares.io/';
 
-let cameraX = 0;
-let cameraY = 0;
-
+let images = [];
+let loadedTiles = new Set();
+const TILE_SIZE = 150;
+const GAP_SIZE = 2;
+const VIEWPORT_BUFFER = 2;
+const WORLD_SIZE = 10000;
+let imageIndex = 0;
+let scaleFactor = 1;
 let isDragging = false;
-let dragStartX = 0;
-let dragStartY = 0;
-let velocityX = 0;
-let velocityY = 0;
+let startX, startY, scrollLeft, scrollTop;
 
-async function loadAvailableFiles() {
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+async function fetchImages() {
   try {
     const response = await fetch(workerURL);
-    const filenames = await response.json();
-    window.availableFiles = filenames.map(name => baseURL + name);
+    const files = await response.json();
+    images = files
+      .filter(file => file.match(/\.(jpg|jpeg|png|gif|mp4)$/i))
+      .map(file => baseURL + file);
+    shuffleArray(images);
   } catch (error) {
-    console.error('Failed to load available files', error);
-    window.availableFiles = [];
+    console.error('Failed to load images:', error);
+    gallery.innerHTML = '<p>Failed to load gallery.</p>';
+  } finally {
+    loader.style.display = 'none';
   }
 }
 
-function randomFile() {
-  const files = (window.availableFiles || []).filter(file => {
-    const ext = file.split('.').pop().toLowerCase();
-    return ['jpg', 'jpeg', 'mp4'].includes(ext);
-  });
-  return files.length ? files[Math.floor(Math.random() * files.length)] : '';
-}
+function placeTile(x, y) {
+  const key = `${x},${y}`;
+  if (loadedTiles.has(key)) return;
+  if (images.length === 0) return;
 
-function createPost(fileUrl) {
-  const ext = fileUrl.split('.').pop().toLowerCase();
-  let post;
-  if (ext === 'mp4') {
-    post = document.createElement('video');
-    post.muted = true;
-    post.loop = true;
-    post.autoplay = true;
-    post.playsInline = true;
-  } else {
-    post = document.createElement('img');
-  }
+  const fileUrl = images[imageIndex % images.length];
+  imageIndex++;
+
+  const post = document.createElement('div');
   post.className = 'post fade-in';
-  post.dataset.src = fileUrl;
-  return post;
-}
+  post.style.left = `${x * (TILE_SIZE + GAP_SIZE)}px`;
+  post.style.top = `${y * (TILE_SIZE + GAP_SIZE)}px`;
 
-function updateTiles() {
-  const viewWidth = window.innerWidth;
-  const viewHeight = window.innerHeight;
-
-  const startCol = Math.floor((cameraX - bufferTiles * tileSize) / tileSize);
-  const endCol = Math.ceil((cameraX + viewWidth + bufferTiles * tileSize) / tileSize);
-  const startRow = Math.floor((cameraY - bufferTiles * tileSize) / tileSize);
-  const endRow = Math.ceil((cameraY + viewHeight + bufferTiles * tileSize) / tileSize);
-
-  const neededTiles = new Set();
-
-  for (let row = startRow; row <= endRow; row++) {
-    for (let col = startCol; col <= endCol; col++) {
-      const key = `${col},${row}`;
-      neededTiles.add(key);
-      if (!tiles.has(key)) {
-        const fileUrl = randomFile();
-        if (fileUrl) {
-          const post = createPost(fileUrl);
-          post.style.left = `${col * tileSize}px`;
-          post.style.top = `${row * tileSize}px`;
-          gallery.appendChild(post);
-          tiles.set(key, post);
-        }
-      }
-    }
+  if (fileUrl.endsWith('.mp4')) {
+    const video = document.createElement('video');
+    video.src = fileUrl;
+    video.muted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.loading = 'lazy';
+    post.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.src = fileUrl;
+    img.alt = '';
+    img.loading = 'lazy';
+    post.appendChild(img);
   }
 
-  for (const [key, tile] of tiles) {
-    if (!neededTiles.has(key)) {
-      gallery.removeChild(tile);
-      tiles.delete(key);
-    }
-  }
+  gallery.appendChild(post);
 
-  lazyLoadTiles();
+  setTimeout(() => {
+    post.classList.add('show');
+  }, 10);
+
+  loadedTiles.add(key);
 }
 
-function lazyLoadTiles() {
-  tiles.forEach(tile => {
-    const rect = tile.getBoundingClientRect();
-    if (
-      rect.right >= 0 &&
-      rect.left <= window.innerWidth &&
-      rect.bottom >= 0 &&
-      rect.top <= window.innerHeight
-    ) {
-      if (tile.tagName === 'IMG') {
-        if (!tile.src) {
-          tile.src = tile.dataset.src;
-        }
-      } else if (tile.tagName === 'VIDEO') {
-        if (tile.children.length === 0) {
-          const source = document.createElement('source');
-          source.src = tile.dataset.src;
-          source.type = 'video/mp4';
-          tile.appendChild(source);
-          tile.load();
-        }
-      }
-    } else {
-      if (tile.tagName === 'IMG') {
-        tile.removeAttribute('src');
-      } else if (tile.tagName === 'VIDEO') {
-        tile.innerHTML = '';
+function setupInfiniteGrid() {
+  window.addEventListener('scroll', () => {
+    const scrollLeft = window.scrollX;
+    const scrollTop = window.scrollY;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const leftEdge = Math.floor(scrollLeft / (TILE_SIZE + GAP_SIZE));
+    const rightEdge = Math.ceil((scrollLeft + viewportWidth) / (TILE_SIZE + GAP_SIZE));
+    const topEdge = Math.floor(scrollTop / (TILE_SIZE + GAP_SIZE));
+    const bottomEdge = Math.ceil((scrollTop + viewportHeight) / (TILE_SIZE + GAP_SIZE));
+
+    for (let x = leftEdge - VIEWPORT_BUFFER; x <= rightEdge + VIEWPORT_BUFFER; x++) {
+      for (let y = topEdge - VIEWPORT_BUFFER; y <= bottomEdge + VIEWPORT_BUFFER; y++) {
+        placeTile(x, y);
       }
     }
   });
 }
 
-function moveCamera(dx, dy) {
-  cameraX += dx;
-  cameraY += dy;
-  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
-  updateTiles();
+function enableMouseDrag() {
+  window.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    gallery.style.cursor = 'grabbing';
+    startX = e.pageX - window.scrollX;
+    startY = e.pageY - window.scrollY;
+    scrollLeft = window.scrollX;
+    scrollTop = window.scrollY;
+  });
+
+  window.addEventListener('mouseleave', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    gallery.style.cursor = 'grab';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.pageX - startX;
+    const y = e.pageY - startY;
+    window.scrollTo(scrollLeft - x, scrollTop - y);
+  });
 }
 
-function animate() {
-  if (!isDragging) {
-    if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
-      moveCamera(-velocityX, -velocityY);
-      velocityX *= 0.95;
-      velocityY *= 0.95;
+function enablePinchZoom() {
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        scaleFactor *= 1.1;
+      } else {
+        scaleFactor /= 1.1;
+      }
+      gallery.style.transform = `scale(${scaleFactor})`;
     }
-  }
-  requestAnimationFrame(animate);
+  }, { passive: false });
 }
 
-gallery.addEventListener('mousedown', e => {
-  isDragging = true;
-  dragStartX = e.clientX;
-  dragStartY = e.clientY;
-  velocityX = 0;
-  velocityY = 0;
-});
-
-document.addEventListener('mouseup', () => {
-  isDragging = false;
-});
-
-document.addEventListener('mousemove', e => {
-  if (isDragging) {
-    const dx = e.clientX - dragStartX;
-    const dy = e.clientY - dragStartY;
-    moveCamera(-dx, -dy);
-    velocityX = dx;
-    velocityY = dy;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-  }
-});
-
-gallery.addEventListener('touchstart', e => {
-  isDragging = true;
-  const touch = e.touches[0];
-  dragStartX = touch.clientX;
-  dragStartY = touch.clientY;
-});
-
-document.addEventListener('touchend', () => {
-  isDragging = false;
-});
-
-document.addEventListener('touchmove', e => {
-  if (isDragging) {
-    const touch = e.touches[0];
-    const dx = touch.clientX - dragStartX;
-    const dy = touch.clientY - dragStartY;
-    moveCamera(-dx, -dy);
-    velocityX = dx;
-    velocityY = dy;
-    dragStartX = touch.clientX;
-    dragStartY = touch.clientY;
-  }
-});
-
-window.addEventListener('wheel', e => {
-  moveCamera(e.deltaX, e.deltaY);
-});
-
-window.addEventListener('keydown', e => {
-  const speed = 20;
-  if (e.key === 'ArrowUp') moveCamera(0, -speed);
-  if (e.key === 'ArrowDown') moveCamera(0, speed);
-  if (e.key === 'ArrowLeft') moveCamera(-speed, 0);
-  if (e.key === 'ArrowRight') moveCamera(speed, 0);
-});
+function enableKeyboardArrows() {
+  window.addEventListener('keydown', (e) => {
+    const moveAmount = window.innerWidth * 0.5;
+    switch (e.key) {
+      case 'ArrowLeft':
+        window.scrollBy(-moveAmount, 0);
+        break;
+      case 'ArrowRight':
+        window.scrollBy(moveAmount, 0);
+        break;
+      case 'ArrowUp':
+        window.scrollBy(0, -moveAmount);
+        break;
+      case 'ArrowDown':
+        window.scrollBy(0, moveAmount);
+        break;
+    }
+  });
+}
 
 async function init() {
-  await loadAvailableFiles();
-
-  console.log('Available Files:', window.availableFiles);
-
-  if (!window.availableFiles || window.availableFiles.length === 0) {
-    document.getElementById('loader').textContent = 'No images available.';
-    return;
-  }
-
-  document.getElementById('loader').style.display = 'none';
-
-  cameraX = gallery.offsetWidth / 2 - window.innerWidth / 2;
-  cameraY = gallery.offsetHeight / 2 - window.innerHeight / 2;
-  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
-
-  updateTiles();
-  animate();
+  await fetchImages();
+  window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
+  setupInfiniteGrid();
+  enableMouseDrag();
+  enablePinchZoom();
+  enableKeyboardArrows();
 }
 
-init();
+document.addEventListener('DOMContentLoaded', init);
