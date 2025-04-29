@@ -35,18 +35,12 @@ body {
   object-fit: cover;
   pointer-events: none;
   user-select: none;
-  transition: transform 0.3s ease;
-}
-
-.post img:hover,
-.post video:hover {
-  transform: scale(1.08);
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .fade-in {
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
 .fade-in.show {
