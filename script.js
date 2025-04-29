@@ -64,14 +64,14 @@ function updateTiles() {
 
   for (let row = startRow; row <= endRow; row++) {
     for (let col = startCol; col <= endCol; col++) {
-      const key = \`\${col},\${row}\`;
+      const key = `${col},${row}`;
       neededTiles.add(key);
       if (!tiles.has(key)) {
         const fileUrl = randomFile();
         if (fileUrl) {
           const post = createPost(fileUrl);
-          post.style.left = \`\${col * tileSize}px\`;
-          post.style.top = \`\${row * tileSize}px\`;
+          post.style.left = `${col * tileSize}px`;
+          post.style.top = `${row * tileSize}px`;
           gallery.appendChild(post);
           tiles.set(key, post);
         }
@@ -126,7 +126,7 @@ function lazyLoadTiles() {
 function moveCamera(dx, dy) {
   cameraX += dx;
   cameraY += dy;
-  gallery.style.transform = \`translate(${-cameraX}px, ${-cameraY}px)\`;
+  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
   updateTiles();
 }
 
@@ -211,7 +211,7 @@ async function init() {
   document.getElementById('loader').style.display = 'none';
   cameraX = gallery.offsetWidth / 2 - window.innerWidth / 2;
   cameraY = gallery.offsetHeight / 2 - window.innerHeight / 2;
-  gallery.style.transform = \`translate(${-cameraX}px, ${-cameraY}px)\`;
+  gallery.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
   updateTiles();
   animate();
 }
