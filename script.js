@@ -5,10 +5,11 @@ const workerURL = 'https://quiet-mouse-8001.flaxen-huskier-06.workers.dev/';
 const baseURL = 'https://dev.tinysquares.io/';
 
 let images = [];
-let loadedTiles = new Map();
+let loadedTiles = new Set();
 const TILE_SIZE = 150;
 const GAP_SIZE = 2;
-const WORLD_SIZE = 100000;
+const VIEWPORT_BUFFER = 2;
+const WORLD_SIZE = 10000;
 let imageIndex = 0;
 let scaleFactor = 1;
 let isDragging = false;
@@ -37,8 +38,14 @@ async function fetchImages() {
   }
 }
 
-function createTile(x, y) {
-  const fileUrl = images[(Math.abs(x + y)) % images.length];
+function placeTile(x, y) {
+  const key = `${x},${y}`;
+  if (loadedTiles.has(key)) return;
+  if (images.length === 0) return;
+
+  const fileUrl = images[imageIndex % images.length];
+  imageIndex++;
+
   const post = document.createElement('div');
   post.className = 'post fade-in';
   post.style.left = `${x * (TILE_SIZE + GAP_SIZE)}px`;
@@ -67,10 +74,10 @@ function createTile(x, y) {
     post.classList.add('show');
   }, 10);
 
-  return post;
+  loadedTiles.add(key);
 }
 
-function setupDynamicGrid() {
+function setupInfiniteGrid() {
   window.addEventListener('scroll', () => {
     const scrollLeft = window.scrollX;
     const scrollTop = window.scrollY;
@@ -82,23 +89,9 @@ function setupDynamicGrid() {
     const topEdge = Math.floor(scrollTop / (TILE_SIZE + GAP_SIZE));
     const bottomEdge = Math.ceil((scrollTop + viewportHeight) / (TILE_SIZE + GAP_SIZE));
 
-    const activeTiles = new Map();
-
-    for (let x = leftEdge - 2; x <= rightEdge + 2; x++) {
-      for (let y = topEdge - 2; y <= bottomEdge + 2; y++) {
-        const key = `${x},${y}`;
-        if (!loadedTiles.has(key)) {
-          loadedTiles.set(key, createTile(x, y));
-        }
-        activeTiles.set(key, true);
-      }
-    }
-
-    // Remove tiles that are too far outside the current view
-    for (let key of loadedTiles.keys()) {
-      if (!activeTiles.has(key)) {
-        gallery.removeChild(loadedTiles.get(key));
-        loadedTiles.delete(key);
+    for (let x = leftEdge - VIEWPORT_BUFFER; x <= rightEdge + VIEWPORT_BUFFER; x++) {
+      for (let y = topEdge - VIEWPORT_BUFFER; y <= bottomEdge + VIEWPORT_BUFFER; y++) {
+        placeTile(x, y);
       }
     }
   });
@@ -169,7 +162,7 @@ function enableKeyboardArrows() {
 async function init() {
   await fetchImages();
   window.scrollTo(WORLD_SIZE / 2, WORLD_SIZE / 2);
-  setupDynamicGrid();
+  setupInfiniteGrid();
   enableMouseDrag();
   enablePinchZoom();
   enableKeyboardArrows();
