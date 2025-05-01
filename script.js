@@ -32,7 +32,8 @@ async function loadAvailableFiles() {
 function randomFile() {
   const files = (window.availableFiles || []).filter(file => {
     const lower = file.toLowerCase();
-    return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.mp4');
+   return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp') ||
+       lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov');
   });
   const chosen = files.length ? files[Math.floor(Math.random() * files.length)] : '';
   return chosen;
