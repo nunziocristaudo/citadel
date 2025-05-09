@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About Us – TinySquares</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    #topbar.hide, footer.hide { display: none !important; }
+  </style>
+</head>
+<body oncontextmenu="return false">
+  <header id="topbar">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="submit.html">Submit a Tile</a>
+      <a href="featured.html">Featured</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main style="padding: 2rem; max-width: 800px; margin: auto;">
+    <h1>About TinySquares</h1>
+    <p><strong>TinySquares</strong> is a infinite visual playground. A place where you can submit your work and share bite-sized moments alongside creators from around the world.</p>
+
+    <p>This platform was built to celebrate creativity with minimal distraction. There are no likes or comments, just a mosaic of beautiful, raw and curious moments to be explored and inspire wonder.</p>
+
+    <p>Each submission becomes part of a collective canvas. Whether you're a artist, hobbyist or someone who simply captured something meaningful, there is a square for you.</p>
+
+    <h2>Who’s behind it?</h2>
+    <p>TinySquares is created and maintained by a small, independent creative team who loves design, storytelling and building tools that feel like art. We work out of coffee shops, quiet rooms, and studio corners across the globe.</p>
+    <h2>How do I get involved?</h2>
+    <ul>
+      <li><a href="submit.html">Submit a tile</a></li>
+      <li>Contact us with ideas or collaborations</li>
+    </ul>
+    
+    <div style="margin-top: -1rem; margin-bottom: 6rem;">
+    <iframe data-tally-src="https://tally.so/r/n9aoVV" loading="lazy" width="100%" height="600" frameborder="0" marginheight="0" marginwidth="0" title="Contact Form"></iframe>
+    </div>
+    <script>
+      var d=document,s=d.createElement("script");s.src="https://tally.so/widgets/embed.js";s.onload=function(){Tally.loadEmbeds()};d.body.appendChild(s);
+    </script>
+  </main>
+
+  <footer>
+    <p>© TinySquares 2025</p>
+  </footer>
+
+  <script>
+    let hideTimeout;
+    function showBars() {
+      clearTimeout(hideTimeout);
+      document.getElementById('topbar').classList.remove('hide');
+      document.querySelector('footer').classList.remove('hide');
+      hideTimeout = setTimeout(() => {
+        document.getElementById('topbar').classList.add('hide');
+        document.querySelector('footer').classList.add('hide');
+      }, 2000);
+    }
+    window.addEventListener('mousemove', showBars);
+    window.addEventListener('scroll', showBars);
+    window.addEventListener('touchmove', showBars);
+    showBars();
+  </script>
+</body>
+</html>
