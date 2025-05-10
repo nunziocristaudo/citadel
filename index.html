@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TinySquares – Explore an Infinite World of Micro Moments</title>
+  <title>TinySquares – An Infinite World of Micro Moments</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="title" content="TinySquares – Explore an Infinite World of Micro Moments">
   <meta name="description" content="TinySquares is a digital public gallery where anyone can submit images, videos, or NFTs. Explore an infinite mosaic of micro moments created by people from around the world.">
@@ -25,6 +25,20 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.jpeg" type="image/jpeg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TinySquares",
+    "url": "https://tinysquares.io",
+    "description": "TinySquares is a digital public gallery where anyone can submit images, videos, or NFTs to a global mosaic.",
+    "publisher": {
+      "@type": "Organization",
+       "name": "TinySquares",
+      "url": "https://tinysquares.io"
+    }
+  }  
+  </script>
   <style>
     #topbar.hide, footer.hide { display: none !important; }
   </style>
@@ -39,18 +53,16 @@
   </header>
 
   <div id="loader">Loading...</div>
-  <main id="gallery"></main>
+  <div id="viewport">
+    <main id="gallery"></main>
+</div>
 
   <footer>
     <p>
       Want your work on TinySquares? <a href="submit.html">Submit a tile</a>.
     </p>
   </footer>
-
-  <!-- core behaviour -->
   <script src="script.js"></script>
-
-  <!-- header/footer hide behaviour -->
   <script>
     let hideTimeout;
     function showBars() {
@@ -67,8 +79,6 @@
     window.addEventListener('touchmove', showBars);
     showBars();
   </script>
-
-  <!-- mobile add-to-home-screen prompt -->
   <script>
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const shown = localStorage.getItem('a2hsPromptShown');
