@@ -276,7 +276,8 @@ const linkBox = document.getElementById('linkBox');
 let currentMediaUrl = '';
 
 function openLightbox(fileObj) {
-  currentMediaUrl = fileObj.url;
+  // use absolute URL so media loads correctly
+  currentMediaUrl = baseURL + fileObj.url;
   mediaContainer.innerHTML = '';
   linkBox.innerHTML = '';
 
