@@ -118,13 +118,20 @@
         ticking = false;
      }
 
-     window.addEventListener('scroll', () => {
-       if (!ticking) {
-         window.requestAnimationFrame(handleScroll);
-         ticking = true;
-       }
-     });
-   } 
- </script>
+  window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    });
+  }
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js');
+    });
+  }
+</script>
 </body>
 </html>
