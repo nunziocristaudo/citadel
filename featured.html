@@ -58,7 +58,7 @@
 
     <section class="nft-gallery">
       <div class="nft-tile">
-        <img src="sample1.webp" alt="NFT Title 1">
+        <img src="sample1.webp" alt="NFT Title 1" loading="lazy">
         <div class="nft-meta">
           <h4>“Dreamscape #1”</h4>
           <p>by @blockartsy</p>
@@ -101,6 +101,13 @@
     window.addEventListener('scroll', showBars);
     window.addEventListener('touchmove', showBars);
     showBars();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
   </script>
 </body>
 </html>
