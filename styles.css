@@ -120,6 +120,7 @@ body {
   height: 75vh;
   max-width: 100%;
   max-height: 100%;
+  overflow: visible;
 }
 
 #closeBtn {
@@ -177,6 +178,26 @@ body {
 .heart {
   transition: transform 0.2s ease, color 0.2s ease;
 }
+.nav-btn {
+  position: absolute;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+}
+.nav-btn:hover { opacity: 1; }
+.nav-btn.left { left: -3rem; top: 50%; transform: translateY(-50%); }
+.nav-btn.right { right: -3rem; top: 50%; transform: translateY(-50%); }
+.nav-btn.up { top: -3rem; left: 50%; transform: translateX(-50%); }
+.nav-btn.down { bottom: -3rem; left: 50%; transform: translateX(-50%); }
 
 #topbar {
   position: fixed;
