@@ -90,6 +90,9 @@ function createPost(fileObj) {
     });
   }
 
+  // store file data on the element for later use
+  post.fileObj = fileObj;
+
   return post;
 }
 
@@ -114,6 +117,11 @@ function updateTiles() {
         if (!post) continue;
         post.style.left = `${col * tileSize}px`;
         post.style.top = `${row * tileSize}px`;
+        post.dataset.col = col;
+        post.dataset.row = row;
+        if (!fileObj.link) {
+          post.addEventListener('click', () => openLightbox(post));
+        }
         gallery.appendChild(post);
         requestAnimationFrame(() => {
           post.classList.add('show');
@@ -243,6 +251,14 @@ window.addEventListener('wheel', e => {
 });
 
 window.addEventListener('keydown', e => {
+  if (!lightbox.classList.contains('hidden')) {
+    if (e.key === 'ArrowLeft') navigate('left');
+    if (e.key === 'ArrowRight') navigate('right');
+    if (e.key === 'ArrowUp') navigate('up');
+    if (e.key === 'ArrowDown') navigate('down');
+    if (e.key === 'Escape') closeLightbox();
+    return;
+  }
   const speed = 20;
   if (e.key === 'ArrowUp') moveCamera(0, -speed);
   if (e.key === 'ArrowDown') moveCamera(0, speed);
@@ -272,10 +288,17 @@ const likeBox = document.querySelector('.like-box');
 const likeCountSpan = document.getElementById('likeCount');
 const heart = document.querySelector('.heart');
 const linkBox = document.getElementById('linkBox');
+const navLeft = document.getElementById('navLeft');
+const navRight = document.getElementById('navRight');
+const navUp = document.getElementById('navUp');
+const navDown = document.getElementById('navDown');
 
 let currentMediaUrl = '';
+let currentPost = null;
 
-function openLightbox(fileObj) {
+function openLightbox(post) {
+  currentPost = post;
+  const fileObj = post.fileObj;
   // use absolute URL so media loads correctly
   currentMediaUrl = baseURL + fileObj.url;
   mediaContainer.innerHTML = '';
@@ -315,6 +338,7 @@ function closeLightbox() {
   lightbox.classList.add('hidden');
   mediaContainer.innerHTML = '';
   linkBox.innerHTML = '';
+  currentPost = null;
 }
 
 function getLikes(url) {
@@ -328,6 +352,18 @@ function incrementLikes(url) {
   return updated;
 }
 
+function navigate(direction) {
+  if (!currentPost) return;
+  let col = parseInt(currentPost.dataset.col, 10);
+  let row = parseInt(currentPost.dataset.row, 10);
+  if (direction === 'left') col -= 1;
+  if (direction === 'right') col += 1;
+  if (direction === 'up') row -= 1;
+  if (direction === 'down') row += 1;
+  const next = tiles.get(`${col},${row}`);
+  if (next) openLightbox(next);
+}
+
 // Hook up modal close and like button
 closeBtn.addEventListener('click', closeLightbox);
 heart.addEventListener('click', () => {
@@ -337,3 +373,8 @@ heart.addEventListener('click', () => {
   heart.classList.add('clicked');
   setTimeout(() => heart.classList.remove('clicked'), 400);
 });
+
+navLeft.addEventListener('click', () => navigate('left'));
+navRight.addEventListener('click', () => navigate('right'));
+navUp.addEventListener('click', () => navigate('up'));
+navDown.addEventListener('click', () => navigate('down'));
