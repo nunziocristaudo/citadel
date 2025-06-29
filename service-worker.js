@@ -37,20 +37,23 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+
   e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request).then((response) => {
-        if (
-          response.ok &&
-          (e.request.destination === "image" ||
-            e.request.destination === "video")
-        ) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        }
-        return response;
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(e.request);
+      const fetchPromise = fetch(e.request)
+        .then((response) => {
+          if (
+            response.ok &&
+            (e.request.destination === "image" ||
+              e.request.destination === "video")
+          ) {
+            cache.put(e.request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
     })
   );
 });

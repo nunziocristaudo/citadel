@@ -16,6 +16,41 @@ let velocityX = 0;
 let velocityY = 0;
 
 let lastMove = 0;
+let mediaObserver;
+
+function initObserver() {
+  const options = { root: null, rootMargin: '200px', threshold: 0.01 };
+  mediaObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const media = entry.target.querySelector('img, video');
+      if (!media) return;
+      if (entry.isIntersecting) {
+        if (media.tagName === 'IMG') {
+          if (!media.src) {
+            media.loading = 'lazy';
+            media.decoding = 'async';
+            media.src = media.dataset.src;
+          }
+        } else if (media.tagName === 'VIDEO') {
+          if (media.children.length === 0) {
+            const source = document.createElement('source');
+            source.src = media.dataset.src;
+            source.type = 'video/mp4';
+            media.preload = 'metadata';
+            media.appendChild(source);
+            media.load();
+          }
+        }
+      } else {
+        if (media.tagName === 'IMG') {
+          media.removeAttribute('src');
+        } else if (media.tagName === 'VIDEO') {
+          media.innerHTML = '';
+        }
+      }
+    });
+  }, options);
+}
 
 async function loadAvailableFiles() {
   // use global workerURL constant defined above
@@ -67,8 +102,11 @@ function createPost(fileObj) {
     media.loop = true;
     media.autoplay = true;
     media.playsInline = true;
+    media.preload = 'metadata';
   } else {
     media = document.createElement('img');
+    media.loading = 'lazy';
+    media.decoding = 'async';
   }
 
   // ✅ Correct the path using baseURL
@@ -80,6 +118,9 @@ function createPost(fileObj) {
   if (fileObj.tier === 'featured') post.classList.add('featured');
   if (fileObj.tier === 'paid') post.classList.add('paid');
   post.appendChild(frame);
+  if (mediaObserver) {
+    mediaObserver.observe(post);
+  }
 
   if (fileObj.link) {
     post.style.cursor = 'pointer';
@@ -125,46 +166,13 @@ function updateTiles() {
 
   for (const [key, tile] of tiles) {
     if (!neededTiles.has(key)) {
+      if (mediaObserver) mediaObserver.unobserve(tile);
       gallery.removeChild(tile);
       tiles.delete(key);
     }
   }
-
-  lazyLoadTiles();
 }
 
-function lazyLoadTiles() {
-  tiles.forEach(tile => {
-    const media = tile.querySelector('img, video');
-    const rect = tile.getBoundingClientRect();
-    if (
-      rect.right >= 0 &&
-      rect.left <= window.innerWidth &&
-      rect.bottom >= 0 &&
-      rect.top <= window.innerHeight
-    ) {
-      if (media.tagName === 'IMG') {
-        if (!media.src) {
-          media.src = media.dataset.src;
-        }
-      } else if (media.tagName === 'VIDEO') {
-        if (media.children.length === 0) {
-          const source = document.createElement('source');
-          source.src = media.dataset.src;
-          source.type = 'video/mp4';
-          media.appendChild(source);
-          media.load();
-        }
-      }
-    } else {
-      if (media.tagName === 'IMG') {
-        media.removeAttribute('src');
-      } else if (media.tagName === 'VIDEO') {
-        media.innerHTML = '';
-      }
-    }
-  });
-}
 
 function moveCamera(dx, dy) {
   const now = Date.now();
@@ -251,6 +259,7 @@ window.addEventListener('keydown', e => {
 });
 
 async function init() {
+  initObserver();
   await loadAvailableFiles();
   if (!window.availableFiles || window.availableFiles.length === 0) {
     document.getElementById('loader').textContent = 'No images available.';
