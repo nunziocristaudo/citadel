@@ -199,6 +199,7 @@ body {
 .nav-btn.up { top: -3rem; left: 50%; transform: translateX(-50%); }
 .nav-btn.down { bottom: -3rem; left: 50%; transform: translateX(-50%); }
 
+
 #topbar {
   position: fixed;
   top: 0;
